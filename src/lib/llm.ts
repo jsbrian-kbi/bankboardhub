@@ -1,3 +1,5 @@
+import { getOpenAiModel, isOpenAiConfigured } from "@/lib/openai-config";
+
 interface RetrievalChunk {
   id: number;
   title: string;
@@ -6,8 +8,7 @@ interface RetrievalChunk {
 }
 
 export async function generateGovernanceAnswer(question: string, chunks: RetrievalChunk[]) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
+  if (!isOpenAiConfigured()) {
     return null;
   }
 
@@ -22,17 +23,18 @@ export async function generateGovernanceAnswer(question: string, chunks: Retriev
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+      model: getOpenAiModel(),
       temperature: 0.2,
+      max_tokens: 1200,
       messages: [
         {
           role: "system",
           content:
-            "당신은 한국 은행·금융지주 이사회 및 사외이사 거버넌스 전문가입니다. 제공된 컨텍스트에 근거해서만 한국어로 답변하세요. 근거가 부족하면 추측하지 말고 부족함을 명시하세요. 답변 마지막에 참고한 문서 번호를 간단히 표시하세요.",
+            "당신은 한국 은행·금융지주 이사회 및 사외이사 거버넌스 전문가입니다. 제공된 컨텍스트에 근거해서만 한국어로 답변하세요. 근거가 부족하면 추측하지 말고 부족함을 명시하세요. 답변 마지막에 '참고 문서: [번호]' 형식으로 출처를 표시하세요.",
         },
         {
           role: "user",
@@ -40,11 +42,18 @@ export async function generateGovernanceAnswer(question: string, chunks: Retriev
         },
       ],
     }),
+    signal: AbortSignal.timeout(45_000),
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`LLM 호출 실패: ${errorText}`);
+    let detail = await response.text();
+    try {
+      const parsed = JSON.parse(detail) as { error?: { message?: string } };
+      detail = parsed.error?.message ?? detail;
+    } catch {
+      // keep raw text
+    }
+    throw new Error(detail);
   }
 
   const payload = (await response.json()) as {

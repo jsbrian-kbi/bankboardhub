@@ -11,7 +11,8 @@
     "restart": "node scripts/restart-server.mjs",
     "deploy:preflight": "node scripts/deploy-preflight.mjs",
     "verify:production": "node scripts/verify-production.mjs",
-    "seed:sample": "node scripts/seed-sample.mjs"
+    "seed:sample": "node scripts/seed-sample.mjs",
+    "verify:openai": "node scripts/verify-openai.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

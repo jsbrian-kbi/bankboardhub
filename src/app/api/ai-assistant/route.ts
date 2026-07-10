@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { generateGovernanceAnswer } from "@/lib/llm";
+import { isOpenAiConfigured } from "@/lib/openai-config";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as { question?: string };
@@ -35,17 +36,20 @@ export async function POST(request: Request) {
 
   let answer: string;
   let mode: "llm" | "retrieval" = "retrieval";
+  const openaiConfigured = isOpenAiConfigured();
 
   try {
     const llmAnswer = await generateGovernanceAnswer(question, chunks);
-    if (llmAnswer) {
+    if (llmAnswer && openaiConfigured) {
       answer = llmAnswer;
       mode = "llm";
     } else if (chunks.length > 0) {
-      answer = `검색 결과를 기반으로 관련 문서는 ${chunks
-        .map((chunk) => chunk.title)
-        .slice(0, 3)
-        .join(", ")} 입니다. OPENAI_API_KEY를 설정하면 근거 기반 AI 답변을 생성합니다.`;
+      answer = openaiConfigured
+        ? llmAnswer ?? "AI 답변을 생성하지 못했습니다. 잠시 후 다시 시도해주세요."
+        : `검색 결과를 기반으로 관련 문서는 ${chunks
+            .map((chunk) => chunk.title)
+            .slice(0, 3)
+            .join(", ")} 입니다. OPENAI_API_KEY를 설정하면 근거 기반 AI 답변을 생성합니다.`;
     } else {
       answer =
         "관련 문서를 찾지 못했습니다. 키워드를 구체화하거나 법규·판례·검사사례 자료를 먼저 등록해주세요.";
@@ -68,6 +72,7 @@ export async function POST(request: Request) {
     answer,
     sources,
     mode,
+    openaiConfigured,
     retrievalCount: chunks.length,
   });
 }

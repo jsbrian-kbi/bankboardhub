@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,11 @@ interface Source {
   domain: string;
 }
 
+interface AssistantChatProps {
+  initialOpenAiConfigured: boolean;
+  initialModel: string;
+}
+
 const exampleQuestions = [
   "사외이사의 법적 책임은?",
   "감사위원회 핵심 점검사항은?",
@@ -18,13 +23,27 @@ const exampleQuestions = [
   "이사회의 AI 리스크 감독 포인트는?",
 ];
 
-export function AssistantChat() {
+export function AssistantChat({ initialOpenAiConfigured, initialModel }: AssistantChatProps) {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [sources, setSources] = useState<Source[]>([]);
   const [mode, setMode] = useState<"llm" | "retrieval" | null>(null);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [openAiConfigured, setOpenAiConfigured] = useState(initialOpenAiConfigured);
+  const [model, setModel] = useState(initialModel);
+
+  useEffect(() => {
+    void fetch("/api/ai-assistant/status")
+      .then((response) => response.json())
+      .then((payload: { openai?: string; model?: string }) => {
+        setOpenAiConfigured(payload.openai === "configured");
+        if (payload.model) setModel(payload.model);
+      })
+      .catch(() => {
+        // 서버에서 전달한 초기값 유지
+      });
+  }, []);
 
   const ask = async (value?: string) => {
     const q = (value ?? question).trim();
@@ -48,6 +67,7 @@ export function AssistantChat() {
       answer?: string;
       sources?: Source[];
       mode?: "llm" | "retrieval";
+      openaiConfigured?: boolean;
     };
 
     setIsLoading(false);
@@ -60,10 +80,32 @@ export function AssistantChat() {
     setAnswer(result.answer ?? "");
     setSources(result.sources ?? []);
     setMode(result.mode ?? null);
+    if (typeof result.openaiConfigured === "boolean") {
+      setOpenAiConfigured(result.openaiConfigured);
+    }
   };
 
   return (
     <div className="grid gap-4">
+      <Card>
+        <CardHeader>
+          <div className="flex flex-wrap items-center gap-2">
+            <CardTitle>AI Assistant 상태</CardTitle>
+            {openAiConfigured ? (
+              <Badge>OpenAI 연동됨 ({model})</Badge>
+            ) : (
+              <Badge className="border border-slate-300 bg-white">검색 기반 모드</Badge>
+            )}
+          </div>
+        </CardHeader>
+        {!openAiConfigured ? (
+          <CardContent className="text-sm text-slate-600">
+            `OPENAI_API_KEY`를 설정하면 근거 문서 기반 AI 답변을 사용할 수 있습니다. 설정 가이드:{" "}
+            <code className="rounded bg-slate-100 px-1">docs/openai-setup.md</code>
+          </CardContent>
+        ) : null}
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>질문하기</CardTitle>

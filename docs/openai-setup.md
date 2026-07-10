@@ -29,7 +29,10 @@ OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-4o-mini
 ```
 
+연동 확인:
+
 ```bash
+npm run verify:openai
 npm run restart
 ```
 
