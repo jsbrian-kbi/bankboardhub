@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase-admin";
+import { requireAdminApi } from "@/lib/admin-auth";
 
 const contentSchema = z.object({
   domain: z.string().min(1),
@@ -13,6 +14,9 @@ const contentSchema = z.object({
 });
 
 export async function GET(request: Request) {
+  const auth = await requireAdminApi();
+  if (auth.response) return auth.response;
+
   const { searchParams } = new URL(request.url);
   const domain = searchParams.get("domain");
 
@@ -35,6 +39,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireAdminApi();
+  if (auth.response) return auth.response;
+
   const json = await request.json();
   const parsed = contentSchema.safeParse(json);
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase-admin";
+import { requireAdminApi } from "@/lib/admin-auth";
 
 const schema = z.object({
   title: z.string().min(1),
@@ -13,6 +14,9 @@ const schema = z.object({
 });
 
 export async function GET() {
+  const auth = await requireAdminApi();
+  if (auth.response) return auth.response;
+
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("education_programs")
@@ -27,6 +31,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireAdminApi();
+  if (auth.response) return auth.response;
+
   const body = await request.json();
   const parsed = schema.safeParse(body);
 

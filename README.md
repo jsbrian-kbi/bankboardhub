@@ -50,13 +50,18 @@ OPENAI_MODEL=gpt-4o-mini
 
 상세 가이드: [docs/deployment-guide.md](docs/deployment-guide.md)
 
+```bash
+npm run deploy:preflight
+```
+
 요약:
 
-1. GitHub push
-2. Vercel Import
-3. 환경변수 설정
-4. Supabase Auth URL 설정
-5. `/api/health` 확인
+1. Supabase SQL 적용 (schema → rls → auth-profile-trigger → storage → fix-rls-recursion)
+2. `.env.local` / Vercel 환경변수 설정
+3. GitHub push
+4. Vercel Import + Deploy
+5. Supabase Auth Redirect URL에 `/auth/callback` 등록
+6. `/api/health` 및 `/admin` 동작 확인
 
 ## 문서
 

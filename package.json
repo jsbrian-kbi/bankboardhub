@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "verify:env": "node scripts/verify-env.mjs"
+    "verify:env": "node scripts/verify-env.mjs",
+    "restart": "node scripts/restart-server.mjs",
+    "deploy:preflight": "node scripts/deploy-preflight.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

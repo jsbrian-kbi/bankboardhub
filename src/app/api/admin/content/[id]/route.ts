@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase-admin";
+import { requireAdminApi } from "@/lib/admin-auth";
 
 const updateSchema = z.object({
   title: z.string().min(1).optional(),
@@ -12,6 +13,9 @@ const updateSchema = z.object({
 });
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdminApi();
+  if (auth.response) return auth.response;
+
   const { id } = await params;
   const json = await request.json();
   const parsed = updateSchema.safeParse(json);
@@ -42,6 +46,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdminApi();
+  if (auth.response) return auth.response;
+
   const { id } = await params;
   const supabase = createAdminClient();
   const { error } = await supabase.from("documents").delete().eq("id", id);

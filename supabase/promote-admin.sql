@@ -1,5 +1,7 @@
 -- 관리자 접속 문제 해결용 (Supabase SQL Editor에서 실행)
--- YOUR_EMAIL@example.com 을 실제 가입 이메일로 바꾸세요.
+-- 1) YOUR_EMAIL@example.com 을 실제 가입 이메일로 바꾸세요.
+-- 2) auth.users.id 와 profiles.id 가 다르면 fix-profile-id-mismatch.sql 도 실행하세요.
+-- 3) RLS 오류가 있으면 fix-rls-recursion.sql 도 실행하세요.
 
 -- 1) 현재 상태 확인
 select

@@ -12,6 +12,9 @@ const errorMessages: Record<string, string> = {
   not_admin:
     "로그인은 되었지만 관리자 권한이 없습니다. Supabase SQL Editor에서 promote-admin.sql을 실행해 role을 admin으로 변경하세요.",
   signed_out: "로그아웃되었습니다. 다시 로그인해주세요.",
+  config_missing: "서버 환경변수(Supabase URL/Key)가 설정되지 않았습니다.",
+  auth_unavailable: "인증 서버에 연결할 수 없습니다. 잠시 후 다시 시도하세요.",
+  auth_callback_failed: "이메일 인증 링크 처리에 실패했습니다. 다시 로그인해주세요.",
 };
 
 function LoginForm() {
@@ -19,11 +22,16 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const urlError = searchParams.get("error");
   const signedOut = searchParams.get("signed_out");
+  const nextPath = searchParams.get("next") || "/admin";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState(
-    signedOut ? errorMessages.signed_out : urlError ? (errorMessages[urlError] ?? "") : "",
+    signedOut
+      ? errorMessages.signed_out
+      : urlError
+        ? (errorMessages[urlError] ?? decodeURIComponent(urlError))
+        : "",
   );
   const [isLoading, setIsLoading] = useState(false);
 
@@ -36,24 +44,39 @@ function LoginForm() {
   };
 
   const signIn = async () => {
-    const supabase = getClient();
-    if (!supabase) {
+    if (!email || !password) {
+      setMessage("이메일과 비밀번호를 입력하세요.");
       return;
     }
+
     setIsLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const result = (await response.json()) as { error?: string; isAdmin?: boolean; message?: string };
     setIsLoading(false);
-    if (error) {
-      if (error.message.toLowerCase().includes("email not confirmed")) {
+
+    if (!response.ok) {
+      if (result.error?.toLowerCase().includes("email not confirmed")) {
         setMessage("이메일 인증이 필요합니다. 아래 '인증 메일 재전송'을 눌러 확인해주세요.");
         return;
       }
-      setMessage(error.message);
+      setMessage(result.error ?? "로그인에 실패했습니다.");
       return;
     }
+
+    if (!result.isAdmin) {
+      setMessage(
+        "로그인은 성공했지만 관리자 권한이 없습니다. Supabase SQL Editor에서 promote-admin.sql을 실행한 뒤 다시 로그인하세요.",
+      );
+      return;
+    }
+
     setMessage("로그인 성공. 관리자 페이지로 이동합니다...");
     router.refresh();
-    window.location.href = "/admin";
+    window.location.href = nextPath.startsWith("/") ? nextPath : "/admin";
   };
 
   const signUp = async () => {

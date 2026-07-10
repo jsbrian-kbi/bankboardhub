@@ -20,7 +20,8 @@
 2. `supabase/rls.sql`
 3. `supabase/auth-profile-trigger.sql`
 4. `supabase/storage.sql`
-5. (선택) `supabase/seed-sample.sql`
+5. (권장) `supabase/fix-rls-recursion.sql`
+6. (선택) `supabase/seed-sample.sql`
 
 ### 관리자 계정
 
@@ -29,6 +30,12 @@ update public.profiles set role = 'admin' where email = 'admin@example.com';
 ```
 
 `auth.users.id`와 `profiles.id`가 다르면 `supabase/fix-profile-id-mismatch.sql` 실행.
+
+로컬 배포 사전 점검:
+
+```bash
+npm run deploy:preflight
+```
 
 ---
 
@@ -85,7 +92,13 @@ vercel --prod
 Dashboard → Authentication → URL Configuration
 
 - **Site URL**: `https://<your-app>.vercel.app`
-- **Redirect URLs**: `https://<your-app>.vercel.app/**`, `http://localhost:3000/**`
+- **Redirect URLs**:
+  - `https://<your-app>.vercel.app/**`
+  - `https://<your-app>.vercel.app/auth/callback`
+  - `http://127.0.0.1:3000/**`
+  - `http://127.0.0.1:3000/auth/callback`
+
+이메일 인증 링크와 로그인 세션 쿠키가 정상 동작하려면 `/auth/callback` URL이 반드시 포함되어야 합니다.
 
 ---
 
