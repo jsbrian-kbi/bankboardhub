@@ -46,6 +46,14 @@ OPENAI_API_KEY=
 OPENAI_MODEL=gpt-4o-mini
 ```
 
+## 프로덕션
+
+- **사이트**: https://bankboardhub.vercel.app
+- **관리자**: https://bankboardhub.vercel.app/admin
+- **검증**: `npm run verify:production -- https://bankboardhub.vercel.app`
+
+Go-Live 체크리스트: [docs/go-live-checklist.md](docs/go-live-checklist.md)
+
 ## 배포
 
 상세 가이드: [docs/deployment-guide.md](docs/deployment-guide.md)
@@ -57,11 +65,10 @@ npm run deploy:preflight
 요약:
 
 1. Supabase SQL 적용 (schema → rls → auth-profile-trigger → storage → fix-rls-recursion)
-2. `.env.local` / Vercel 환경변수 설정
-3. GitHub push
-4. Vercel Import + Deploy
-5. Supabase Auth Redirect URL에 `/auth/callback` 등록
-6. `/api/health` 및 `/admin` 동작 확인
+2. GitHub push 완료: https://github.com/jsbrian-kbi/bankboardhub
+3. Vercel Import + 환경변수 설정 → Deploy ([vercel-quickstart.md](docs/vercel-quickstart.md))
+4. Supabase Auth Redirect URL에 `/auth/callback` 등록
+5. `/api/health` 및 `/admin` 동작 확인
 
 ## 문서
 
@@ -69,6 +76,9 @@ npm run deploy:preflight
 - [IA / Sitemap](docs/ia-sitemap-userflow.md)
 - [Auth / RAG 가이드](docs/rag-and-auth-guide.md)
 - [배포 가이드](docs/deployment-guide.md)
+- [Vercel 빠른 가이드](docs/vercel-quickstart.md)
+- [Supabase 프로덕션 Auth](docs/supabase-production-auth.md)
+- [Go-Live 체크리스트](docs/go-live-checklist.md)
 
 ## 라이선스
 

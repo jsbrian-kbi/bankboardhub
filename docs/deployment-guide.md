@@ -41,22 +41,26 @@ npm run deploy:preflight
 
 ## 2) GitHub 연동
 
+저장소: https://github.com/jsbrian-kbi/bankboardhub
+
 ```bash
 cd /Users/admin/bankboardhub
-git add .
-git commit -m "Prepare Bank Board Governance Hub for deployment"
-git remote add origin https://github.com/<your-org>/bankboardhub.git
+git remote add origin git@github.com:jsbrian-kbi/bankboardhub.git
 git push -u origin main
 ```
+
+(이미 push 완료된 경우 이 단계는 생략)
 
 ---
 
 ## 3) Vercel 배포
 
+빠른 가이드: [docs/vercel-quickstart.md](vercel-quickstart.md)
+
 ### Dashboard
 
 1. [vercel.com/new](https://vercel.com/new)
-2. GitHub 저장소 Import
+2. GitHub 저장소 `jsbrian-kbi/bankboardhub` Import
 3. Framework: **Next.js**
 4. Environment Variables 설정
 5. **Deploy**
