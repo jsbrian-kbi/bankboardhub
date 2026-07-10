@@ -1,29 +1,21 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { requireAdminApi } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { fetchUrlMetadata } from "@/lib/url-metadata";
 import { isContentDomain } from "@/lib/content-domains";
-
-const importSchema = z.object({
-  domain: z.string().min(1),
-  url: z.string().url(),
-  title: z.string().optional(),
-  body: z.string().optional(),
-  source_name: z.string().optional(),
-  preview: z.boolean().optional(),
-});
+import { formatZodError, normalizeWebsiteUrl, websiteImportSchema } from "@/lib/admin-content-schema";
 
 export async function GET(request: Request) {
   const auth = await requireAdminApi();
   if (auth.response) return auth.response;
 
-  const url = new URL(request.url).searchParams.get("url")?.trim();
-  if (!url) {
+  const rawUrl = new URL(request.url).searchParams.get("url")?.trim();
+  if (!rawUrl) {
     return NextResponse.json({ error: "url 파라미터가 필요합니다." }, { status: 400 });
   }
 
   try {
+    const url = normalizeWebsiteUrl(rawUrl);
     const metadata = await fetchUrlMetadata(url);
     return NextResponse.json({ data: metadata });
   } catch (error) {
@@ -39,23 +31,24 @@ export async function POST(request: Request) {
   if (auth.response) return auth.response;
 
   const json = await request.json();
-  const parsed = importSchema.safeParse(json);
+  const parsed = websiteImportSchema.safeParse(json);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "유효하지 않은 요청" }, { status: 400 });
+    return NextResponse.json({ error: formatZodError(parsed.error) }, { status: 400 });
   }
 
-  const { url, preview, domain } = parsed.data;
+  const { preview, domain } = parsed.data;
 
   if (!isContentDomain(domain)) {
     return NextResponse.json({ error: "지원하지 않는 콘텐츠 도메인입니다." }, { status: 400 });
   }
 
   try {
+    const url = normalizeWebsiteUrl(parsed.data.url);
     const metadata = await fetchUrlMetadata(url);
-    const title = parsed.data.title?.trim() || metadata.title;
-    const body = parsed.data.body?.trim() || metadata.description;
-    const sourceName = parsed.data.source_name?.trim() || metadata.siteName || null;
+    const title = parsed.data.title || metadata.title || new URL(url).hostname;
+    const body = parsed.data.body || metadata.description || `${title} 웹페이지`;
+    const sourceName = parsed.data.source_name || metadata.siteName || null;
 
     if (preview) {
       return NextResponse.json({

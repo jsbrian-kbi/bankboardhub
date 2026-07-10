@@ -1,16 +1,7 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { requireAdminApi } from "@/lib/admin-auth";
-
-const updateSchema = z.object({
-  title: z.string().min(1).optional(),
-  body: z.string().min(1).optional(),
-  source_name: z.string().optional(),
-  source_url: z.string().url().optional().or(z.literal("")),
-  published_at: z.string().optional(),
-  is_public: z.boolean().optional(),
-});
+import { contentUpdateSchema, formatZodError } from "@/lib/admin-content-schema";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAdminApi();
@@ -18,25 +9,26 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const { id } = await params;
   const json = await request.json();
-  const parsed = updateSchema.safeParse(json);
+  const parsed = contentUpdateSchema.safeParse(json);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "유효하지 않은 요청" }, { status: 400 });
+    return NextResponse.json({ error: formatZodError(parsed.error) }, { status: 400 });
   }
 
   const supabase = createAdminClient();
   const payload = parsed.data;
+  const updatePayload: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  };
 
-  const { error } = await supabase
-    .from("documents")
-    .update({
-      ...payload,
-      source_name: payload.source_name || null,
-      source_url: payload.source_url || null,
-      published_at: payload.published_at || null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id);
+  if (payload.title !== undefined) updatePayload.title = payload.title;
+  if (payload.body !== undefined) updatePayload.body = payload.body;
+  if (payload.source_name !== undefined) updatePayload.source_name = payload.source_name;
+  if (payload.source_url !== undefined) updatePayload.source_url = payload.source_url;
+  if (payload.published_at !== undefined) updatePayload.published_at = payload.published_at;
+  if (payload.is_public !== undefined) updatePayload.is_public = payload.is_public;
+
+  const { error } = await supabase.from("documents").update(updatePayload).eq("id", id);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

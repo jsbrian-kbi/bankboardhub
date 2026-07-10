@@ -9,6 +9,13 @@ interface WebsiteImportFormProps {
   onSuccess?: () => void | Promise<void>;
 }
 
+function normalizeWebsiteUrlInput(input: string) {
+  const trimmed = input.trim();
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
 export function WebsiteImportForm({ domain, onSuccess }: WebsiteImportFormProps) {
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
@@ -18,7 +25,7 @@ export function WebsiteImportForm({ domain, onSuccess }: WebsiteImportFormProps)
   const [isLoading, setIsLoading] = useState(false);
 
   const loadPreview = async () => {
-    const trimmedUrl = url.trim();
+    const trimmedUrl = normalizeWebsiteUrlInput(url);
     if (!trimmedUrl) {
       setMessage("웹사이트 URL을 입력해주세요.");
       return;
@@ -49,7 +56,7 @@ export function WebsiteImportForm({ domain, onSuccess }: WebsiteImportFormProps)
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const trimmedUrl = url.trim();
+    const trimmedUrl = normalizeWebsiteUrlInput(url);
     if (!trimmedUrl) {
       setMessage("웹사이트 URL을 입력해주세요.");
       return;
@@ -59,6 +66,8 @@ export function WebsiteImportForm({ domain, onSuccess }: WebsiteImportFormProps)
       setMessage("문서명을 입력해주세요.");
       return;
     }
+
+    const summary = body.trim() || `${title.trim()} 웹페이지`;
 
     setIsLoading(true);
     setMessage("");
@@ -70,7 +79,7 @@ export function WebsiteImportForm({ domain, onSuccess }: WebsiteImportFormProps)
         domain,
         url: trimmedUrl,
         title: title.trim(),
-        body: body.trim() || `${title.trim()} 웹페이지`,
+        body: summary,
         source_name: sourceName.trim() || undefined,
       }),
     });

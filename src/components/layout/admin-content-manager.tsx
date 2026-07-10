@@ -65,6 +65,14 @@ export function AdminContentManager({
         listVersion={listVersion}
         fields={fields}
         columns={listColumns}
+        transformPayload={(form, initialDomain) => ({
+          domain: initialDomain,
+          title: form.title?.trim() ?? "",
+          body: form.body?.trim() || form.title?.trim() || "등록된 콘텐츠",
+          source_name: form.source_name?.trim() || undefined,
+          source_url: form.source_url?.trim() || undefined,
+          published_at: form.published_at?.trim() || undefined,
+        })}
         mapRowToForm={(row) =>
           fields.reduce<Record<string, string>>((acc, field) => {
             acc[field.name] = row[field.name] == null ? "" : String(row[field.name]);
