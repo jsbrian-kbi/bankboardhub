@@ -1,11 +1,15 @@
 import { AdminCrudPage } from "@/components/layout/admin-crud-page";
+import { getAdminBanks } from "@/lib/admin-list";
 
-export default function AdminBanksPage() {
+export default async function AdminBanksPage() {
+  const initialRows = await getAdminBanks();
+
   return (
     <AdminCrudPage
       title="은행정보 수정"
       description="은행/지주 이사회 현황 데이터를 수정합니다."
       endpoint="/api/admin/banks"
+      initialRows={initialRows}
       fields={[
         { name: "name", label: "기관명" },
         { name: "board_size", label: "이사회 규모" },

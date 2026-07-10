@@ -1,11 +1,15 @@
 import { AdminCrudPage } from "@/components/layout/admin-crud-page";
+import { getAdminEducation } from "@/lib/admin-list";
 
-export default function AdminEducationPage() {
+export default async function AdminEducationPage() {
+  const initialRows = await getAdminEducation();
+
   return (
     <AdminCrudPage
       title="교육 등록"
       description="교육 과정을 생성하고 접수기간을 관리합니다."
       endpoint="/api/admin/education"
+      initialRows={initialRows}
       fields={[
         { name: "title", label: "과정명" },
         { name: "track", label: "유형" },

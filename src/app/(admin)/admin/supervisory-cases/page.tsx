@@ -1,6 +1,9 @@
 import { AdminCrudPage } from "@/components/layout/admin-crud-page";
+import { getAdminContent } from "@/lib/admin-list";
 
-export default function AdminSupervisoryCasesPage() {
+export default async function AdminSupervisoryCasesPage() {
+  const initialRows = await getAdminContent("supervisory-case");
+
   return (
     <AdminCrudPage
       title="검사사례 등록"
@@ -8,6 +11,7 @@ export default function AdminSupervisoryCasesPage() {
       endpoint="/api/admin/content"
       listEndpoint="/api/admin/content?domain=supervisory-case"
       initialDomain="supervisory-case"
+      initialRows={initialRows}
       fields={[
         { name: "title", label: "사례명" },
         { name: "body", label: "사고개요/지적사항/시사점" },

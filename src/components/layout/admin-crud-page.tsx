@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -25,6 +25,7 @@ interface AdminCrudPageProps {
   transformPayload?: (form: Record<string, string>, domain?: string) => Record<string, unknown>;
   mapRowToForm?: (row: Record<string, unknown>) => Record<string, string>;
   getPatchPayload?: (form: Record<string, string>) => Record<string, unknown>;
+  initialRows?: Record<string, unknown>[];
 }
 
 export function AdminCrudPage({
@@ -38,6 +39,7 @@ export function AdminCrudPage({
   transformPayload,
   mapRowToForm,
   getPatchPayload,
+  initialRows = [],
 }: AdminCrudPageProps) {
   const emptyForm = useMemo(
     () =>
@@ -49,7 +51,7 @@ export function AdminCrudPage({
   );
 
   const [form, setForm] = useState<Record<string, string>>(emptyForm);
-  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
+  const [rows, setRows] = useState<Record<string, unknown>[]>(initialRows);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -64,10 +66,6 @@ export function AdminCrudPage({
     }
     setRows(result.data ?? []);
   }, [endpoint, listEndpoint]);
-
-  useEffect(() => {
-    void fetchList();
-  }, [fetchList]);
 
   const resetForm = () => {
     setForm(emptyForm);
@@ -173,7 +171,12 @@ export function AdminCrudPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>등록 목록</CardTitle>
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle>등록 목록</CardTitle>
+            <Button type="button" size="sm" variant="outline" onClick={() => void fetchList()} disabled={isLoading}>
+              새로고침
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">

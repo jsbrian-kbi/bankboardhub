@@ -1,6 +1,9 @@
 import { AdminCrudPage } from "@/components/layout/admin-crud-page";
+import { getAdminContent } from "@/lib/admin-list";
 
-export default function AdminBoardsPage() {
+export default async function AdminBoardsPage() {
+  const initialRows = await getAdminContent("board-post");
+
   return (
     <AdminCrudPage
       title="게시판 관리"
@@ -8,6 +11,7 @@ export default function AdminBoardsPage() {
       endpoint="/api/admin/content"
       listEndpoint="/api/admin/content?domain=board-post"
       initialDomain="board-post"
+      initialRows={initialRows}
       transformPayload={(form) => ({
         domain: "board-post",
         title: form.board_name,

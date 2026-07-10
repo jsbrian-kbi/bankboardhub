@@ -1,6 +1,9 @@
 import { AdminCrudPage } from "@/components/layout/admin-crud-page";
+import { getAdminContent } from "@/lib/admin-list";
 
-export default function AdminMovesPage() {
+export default async function AdminMovesPage() {
+  const initialRows = await getAdminContent("move");
+
   return (
     <AdminCrudPage
       title="인사동정 등록"
@@ -8,6 +11,7 @@ export default function AdminMovesPage() {
       endpoint="/api/admin/content"
       listEndpoint="/api/admin/content?domain=move"
       initialDomain="move"
+      initialRows={initialRows}
       fields={[
         { name: "title", label: "인사 제목" },
         { name: "body", label: "상세 내용" },

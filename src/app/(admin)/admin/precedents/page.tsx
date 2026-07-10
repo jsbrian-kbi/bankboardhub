@@ -1,6 +1,9 @@
 import { AdminCrudPage } from "@/components/layout/admin-crud-page";
+import { getAdminContent } from "@/lib/admin-list";
 
-export default function AdminPrecedentsPage() {
+export default async function AdminPrecedentsPage() {
+  const initialRows = await getAdminContent("precedent");
+
   return (
     <AdminCrudPage
       title="판례 등록"
@@ -8,6 +11,7 @@ export default function AdminPrecedentsPage() {
       endpoint="/api/admin/content"
       listEndpoint="/api/admin/content?domain=precedent"
       initialDomain="precedent"
+      initialRows={initialRows}
       fields={[
         { name: "title", label: "사건명" },
         { name: "body", label: "쟁점/판결요지/시사점" },

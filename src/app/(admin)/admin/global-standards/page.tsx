@@ -1,6 +1,9 @@
 import { AdminCrudPage } from "@/components/layout/admin-crud-page";
+import { getAdminContent } from "@/lib/admin-list";
 
-export default function AdminGlobalStandardsPage() {
+export default async function AdminGlobalStandardsPage() {
+  const initialRows = await getAdminContent("global-standard");
+
   return (
     <AdminCrudPage
       title="국제기준 등록"
@@ -8,6 +11,7 @@ export default function AdminGlobalStandardsPage() {
       endpoint="/api/admin/content"
       listEndpoint="/api/admin/content?domain=global-standard"
       initialDomain="global-standard"
+      initialRows={initialRows}
       fields={[
         { name: "title", label: "기준명" },
         { name: "body", label: "핵심 요약/국내 시사점" },

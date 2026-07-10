@@ -10,8 +10,19 @@ const noto = Noto_Sans_KR({
 });
 
 export const metadata: Metadata = {
-  title: "Bank Board Governance Hub",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  title: {
+    default: "Bank Board Governance Hub",
+    template: "%s | Bank Board Governance Hub",
+  },
   description: "국내 은행 및 은행지주회사 이사회·사외이사 전문 지식 플랫폼",
+  keywords: ["이사회", "사외이사", "지배구조", "내부통제", "금융규제", "거버넌스"],
+  openGraph: {
+    title: "Bank Board Governance Hub",
+    description: "국내 은행 및 은행지주회사 이사회·사외이사 전문 지식 플랫폼",
+    type: "website",
+    locale: "ko_KR",
+  },
 };
 
 export default function RootLayout({

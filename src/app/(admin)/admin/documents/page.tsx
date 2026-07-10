@@ -1,7 +1,10 @@
 import { AdminCrudPage } from "@/components/layout/admin-crud-page";
 import { FileUploadForm } from "@/components/layout/file-upload-form";
+import { getAdminContent } from "@/lib/admin-list";
 
-export default function AdminDocumentsPage() {
+export default async function AdminDocumentsPage() {
+  const initialRows = await getAdminContent("resources");
+
   return (
     <div className="grid gap-6">
       <FileUploadForm />
@@ -11,6 +14,7 @@ export default function AdminDocumentsPage() {
         endpoint="/api/admin/content"
         listEndpoint="/api/admin/content?domain=resources"
         initialDomain="resources"
+        initialRows={initialRows}
         fields={[
           { name: "title", label: "문서명" },
           { name: "body", label: "요약" },

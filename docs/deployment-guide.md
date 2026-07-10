@@ -74,6 +74,7 @@ vercel --prod
 | `SUPABASE_SERVICE_ROLE_KEY` | service_role (서버 전용) |
 | `OPENAI_API_KEY` | AI (선택) |
 | `OPENAI_MODEL` | 예: gpt-4o-mini |
+| `NEXT_PUBLIC_SITE_URL` | 프로덕션 URL (SEO/sitemap) |
 
 로컬 검증: `npm run verify:env`
 

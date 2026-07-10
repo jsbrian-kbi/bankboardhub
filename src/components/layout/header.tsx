@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { Menu } from "lucide-react";
 import { topMenus } from "@/data/navigation";
 import { getSessionWithRole } from "@/lib/session";
 import { GlobalSearch } from "@/components/layout/global-search";
 import { AuthActions } from "@/components/layout/auth-actions";
+import { MobileNav } from "@/components/layout/mobile-nav";
 
 export async function Header() {
   const { user, isAdmin } = await getSessionWithRole();
@@ -23,9 +23,7 @@ export async function Header() {
         </nav>
         <GlobalSearch />
         <AuthActions isLoggedIn={!!user} isAdmin={isAdmin} email={user?.email} />
-        <button aria-label="메뉴" className="rounded-md p-1 text-slate-700 lg:hidden">
-          <Menu size={18} />
-        </button>
+        <MobileNav />
       </div>
     </header>
   );

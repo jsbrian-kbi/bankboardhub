@@ -1,6 +1,9 @@
 import { AdminCrudPage } from "@/components/layout/admin-crud-page";
+import { getAdminContent } from "@/lib/admin-list";
 
-export default function AdminRegulationPage() {
+export default async function AdminRegulationPage() {
+  const initialRows = await getAdminContent("regulation");
+
   return (
     <AdminCrudPage
       title="법규 등록"
@@ -8,6 +11,7 @@ export default function AdminRegulationPage() {
       endpoint="/api/admin/content"
       listEndpoint="/api/admin/content?domain=regulation"
       initialDomain="regulation"
+      initialRows={initialRows}
       fields={[
         { name: "title", label: "법령/조문명" },
         { name: "body", label: "조문내용/요약" },

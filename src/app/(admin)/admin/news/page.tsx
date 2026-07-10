@@ -1,6 +1,9 @@
 import { AdminCrudPage } from "@/components/layout/admin-crud-page";
+import { getAdminContent } from "@/lib/admin-list";
 
-export default function AdminNewsPage() {
+export default async function AdminNewsPage() {
+  const initialRows = await getAdminContent("news");
+
   return (
     <AdminCrudPage
       title="뉴스 등록"
@@ -8,6 +11,7 @@ export default function AdminNewsPage() {
       endpoint="/api/admin/content"
       listEndpoint="/api/admin/content?domain=news"
       initialDomain="news"
+      initialRows={initialRows}
       fields={[
         { name: "title", label: "제목" },
         { name: "body", label: "요약/본문" },

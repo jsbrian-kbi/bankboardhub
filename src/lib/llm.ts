@@ -1,5 +1,3 @@
-import { createAdminClient } from "@/lib/supabase-admin";
-
 interface RetrievalChunk {
   id: number;
   title: string;
