@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -26,6 +26,8 @@ interface AdminCrudPageProps {
   mapRowToForm?: (row: Record<string, unknown>) => Record<string, string>;
   getPatchPayload?: (form: Record<string, string>) => Record<string, unknown>;
   initialRows?: Record<string, unknown>[];
+  listVersion?: number;
+  renderCell?: (key: string, row: Record<string, unknown>) => ReactNode;
 }
 
 export function AdminCrudPage({
@@ -40,6 +42,8 @@ export function AdminCrudPage({
   mapRowToForm,
   getPatchPayload,
   initialRows = [],
+  listVersion = 0,
+  renderCell,
 }: AdminCrudPageProps) {
   const emptyForm = useMemo(
     () =>
@@ -66,6 +70,12 @@ export function AdminCrudPage({
     }
     setRows(result.data ?? []);
   }, [endpoint, listEndpoint]);
+
+  useEffect(() => {
+    if (listVersion > 0) {
+      void fetchList();
+    }
+  }, [fetchList, listVersion]);
 
   const resetForm = () => {
     setForm(emptyForm);
@@ -202,7 +212,11 @@ export function AdminCrudPage({
                   <tr key={String(row.id)} className="border-b border-slate-100">
                     {columns.map((column) => (
                       <td key={column.key} className="max-w-xs truncate px-3 py-2">
-                        {row[column.key] == null ? "-" : String(row[column.key])}
+                        {renderCell
+                          ? renderCell(column.key, row)
+                          : row[column.key] == null
+                            ? "-"
+                            : String(row[column.key])}
                       </td>
                     ))}
                     <td className="px-3 py-2">

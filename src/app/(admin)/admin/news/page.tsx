@@ -1,22 +1,21 @@
-import { AdminCrudPage } from "@/components/layout/admin-crud-page";
+import { AdminContentManager } from "@/components/layout/admin-content-manager";
 import { getAdminContent } from "@/lib/admin-list";
 
 export default async function AdminNewsPage() {
   const initialRows = await getAdminContent("news");
 
   return (
-    <AdminCrudPage
+    <AdminContentManager
       title="뉴스 등록"
-      description="내/외부 출처 뉴스를 등록하고 분류합니다."
-      endpoint="/api/admin/content"
-      listEndpoint="/api/admin/content?domain=news"
-      initialDomain="news"
+      description="뉴스 문서·웹사이트를 등록합니다."
+      domain="news"
+      publicPath="/news"
       initialRows={initialRows}
       fields={[
         { name: "title", label: "제목" },
         { name: "body", label: "요약/본문" },
         { name: "source_name", label: "출처" },
-        { name: "source_url", label: "링크" },
+        { name: "source_url", label: "원문 링크" },
         { name: "published_at", label: "발행일(YYYY-MM-DD)" },
       ]}
       columns={[

@@ -1,16 +1,15 @@
-import { AdminCrudPage } from "@/components/layout/admin-crud-page";
+import { AdminContentManager } from "@/components/layout/admin-content-manager";
 import { getAdminContent } from "@/lib/admin-list";
 
 export default async function AdminGlobalStandardsPage() {
   const initialRows = await getAdminContent("global-standard");
 
   return (
-    <AdminCrudPage
+    <AdminContentManager
       title="국제기준 등록"
-      description="OECD, BCBS, BIS 등 국제기준 요약과 국내 시사점을 등록합니다."
-      endpoint="/api/admin/content"
-      listEndpoint="/api/admin/content?domain=global-standard"
-      initialDomain="global-standard"
+      description="국제기준 문서·웹사이트를 등록합니다."
+      domain="global-standard"
+      publicPath="/global-standards"
       initialRows={initialRows}
       fields={[
         { name: "title", label: "기준명" },

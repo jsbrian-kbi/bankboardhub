@@ -7,7 +7,7 @@ const quickLinks = [
   { href: "/admin/regulation", label: "법규 등록", publicHref: "/regulation" },
   { href: "/admin/precedents", label: "판례 등록", publicHref: "/precedents" },
   { href: "/admin/supervisory-cases", label: "검사사례 등록", publicHref: "/supervisory-cases" },
-  { href: "/admin/documents", label: "문서 업로드", publicHref: "/resources" },
+  { href: "/admin/documents", label: "자료실 등록", publicHref: "/resources" },
   { href: "/admin/banks", label: "은행 정보", publicHref: "/bank-status" },
   { href: "/admin/education", label: "교육 과정", publicHref: "/education" },
   { href: "/admin/users", label: "사용자 관리", publicHref: null },

@@ -10,7 +10,7 @@ const adminMenus = [
   { href: "/admin/global-standards", label: "국제기준 등록" },
   { href: "/admin/education", label: "교육 등록" },
   { href: "/admin/banks", label: "은행정보 수정" },
-  { href: "/admin/documents", label: "문서 업로드" },
+  { href: "/admin/documents", label: "자료실 등록" },
   { href: "/admin/users", label: "사용자 관리" },
   { href: "/admin/boards", label: "게시판 관리" },
 ];

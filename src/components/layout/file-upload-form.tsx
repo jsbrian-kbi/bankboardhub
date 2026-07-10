@@ -4,7 +4,15 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export function FileUploadForm() {
+const MAX_FILE_SIZE_MB = 20;
+const ACCEPTED_EXTENSIONS = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.hwp,.txt,.zip";
+
+interface FileUploadFormProps {
+  domain: string;
+  onSuccess?: () => void | Promise<void>;
+}
+
+export function FileUploadForm({ domain, onSuccess }: FileUploadFormProps) {
   const [title, setTitle] = useState("");
   const [sourceName, setSourceName] = useState("");
   const [body, setBody] = useState("");
@@ -15,17 +23,30 @@ export function FileUploadForm() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!title.trim()) {
+      setMessage("문서명을 입력해주세요.");
+      return;
+    }
+
     if (!file) {
       setMessage("파일을 선택해주세요.");
       return;
     }
 
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      setMessage(`파일 크기는 ${MAX_FILE_SIZE_MB}MB 이하여야 합니다.`);
+      return;
+    }
+
     setIsLoading(true);
+    setMessage("");
+
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("title", title);
-    formData.append("source_name", sourceName);
-    formData.append("body", body);
+    formData.append("domain", domain);
+    formData.append("title", title.trim());
+    formData.append("source_name", sourceName.trim());
+    formData.append("body", body.trim());
 
     const response = await fetch("/api/admin/upload", {
       method: "POST",
@@ -41,13 +62,14 @@ export function FileUploadForm() {
       setSourceName("");
       setBody("");
       setFile(null);
+      await onSuccess?.();
     }
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>파일 업로드 (Supabase Storage)</CardTitle>
+        <CardTitle>파일 업로드</CardTitle>
       </CardHeader>
       <CardContent>
         <form className="grid gap-3" onSubmit={onSubmit}>
@@ -57,6 +79,7 @@ export function FileUploadForm() {
               className="h-10 rounded-md border border-slate-300 px-3"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              required
             />
           </label>
           <label className="grid gap-1 text-sm text-slate-700">
@@ -69,18 +92,21 @@ export function FileUploadForm() {
           </label>
           <label className="grid gap-1 text-sm text-slate-700">
             요약
-            <input
-              className="h-10 rounded-md border border-slate-300 px-3"
+            <textarea
+              className="min-h-20 rounded-md border border-slate-300 px-3 py-2"
               value={body}
               onChange={(e) => setBody(e.target.value)}
+              placeholder="비워두면 파일명으로 자동 입력됩니다."
             />
           </label>
           <label className="grid gap-1 text-sm text-slate-700">
-            파일 (PDF, DOCX, XLSX 등)
+            파일 (최대 {MAX_FILE_SIZE_MB}MB)
             <input
               type="file"
               className="text-sm"
+              accept={ACCEPTED_EXTENSIONS}
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              required
             />
           </label>
           <Button type="submit" className="w-fit" disabled={isLoading}>

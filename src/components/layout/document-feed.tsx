@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PublicDocument } from "@/lib/public-data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { isStorageFileUrl } from "@/lib/content-domains";
 
 interface DocumentFeedProps {
   items: PublicDocument[];
@@ -42,7 +43,7 @@ export function DocumentFeed({
                 rel="noopener noreferrer"
                 className="text-sm font-medium text-slate-900 underline"
               >
-                원문 보기
+                {getSourceLinkLabel(item.source_url)}
               </Link>
             ) : null}
           </CardContent>
@@ -54,4 +55,8 @@ export function DocumentFeed({
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("ko-KR");
+}
+
+function getSourceLinkLabel(url: string) {
+  return isStorageFileUrl(url) ? "파일 다운로드" : "웹사이트 보기";
 }
