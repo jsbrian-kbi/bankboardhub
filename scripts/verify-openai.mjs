@@ -10,7 +10,8 @@ if (existsSync(envPath)) {
     const index = line.indexOf("=");
     const key = line.slice(0, index);
     const value = line.slice(index + 1);
-    if (!process.env[key]) process.env[key] = value;
+    // Prefer .env.local values for deterministic local verification.
+    process.env[key] = value;
   }
 }
 

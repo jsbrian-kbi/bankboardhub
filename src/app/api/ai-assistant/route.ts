@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { generateGovernanceAnswer } from "@/lib/llm";
 import { isOpenAiConfigured } from "@/lib/openai-config";
+import { searchDocumentsWithFallback } from "@/lib/search-documents";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as { question?: string };
@@ -12,10 +13,7 @@ export async function POST(request: Request) {
   }
 
   const supabase = createAdminClient();
-  const { data, error } = await supabase.rpc("search_documents", {
-    keyword: question,
-    match_count: 6,
-  });
+  const { data, error } = await searchDocumentsWithFallback(supabase, question, 6);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
