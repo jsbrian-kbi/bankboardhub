@@ -79,6 +79,8 @@ npm run deploy:preflight
 - [Vercel 빠른 가이드](docs/vercel-quickstart.md)
 - [Supabase 프로덕션 Auth](docs/supabase-production-auth.md)
 - [Go-Live 체크리스트](docs/go-live-checklist.md)
+- [OpenAI 연동](docs/openai-setup.md)
+- [커스텀 도메인](docs/custom-domain.md)
 
 ## 라이선스
 
