@@ -36,6 +36,12 @@ Supabase SQL 적용 순서:
 
 관리자 승격: `supabase/promote-admin.sql`
 
+샘플 데이터:
+
+```bash
+npm run seed:sample
+```
+
 ## 환경변수
 
 ```env

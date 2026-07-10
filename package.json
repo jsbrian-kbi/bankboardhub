@@ -10,7 +10,8 @@
     "verify:env": "node scripts/verify-env.mjs",
     "restart": "node scripts/restart-server.mjs",
     "deploy:preflight": "node scripts/deploy-preflight.mjs",
-    "verify:production": "node scripts/verify-production.mjs"
+    "verify:production": "node scripts/verify-production.mjs",
+    "seed:sample": "node scripts/seed-sample.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

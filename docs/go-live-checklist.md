@@ -20,7 +20,7 @@
 
 ## 선택 항목
 
-- [ ] `supabase/seed-sample.sql` 추가 샘플 데이터 ([확장됨](seed-sample.sql))
+- [ ] `supabase/seed-sample.sql` 또는 `npm run seed:sample` 로 샘플 데이터 입력
 - [ ] Vercel `OPENAI_API_KEY` 설정 → [OpenAI 가이드](openai-setup.md)
 - [ ] 커스텀 도메인 연결 → [커스텀 도메인 가이드](custom-domain.md)
 - [ ] Supabase `fix-rls-recursion.sql` 미적용 시 실행
