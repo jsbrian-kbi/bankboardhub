@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bank Board Governance Hub
 
-## Getting Started
+국내 은행 및 은행지주회사 이사회·사외이사를 위한 독립형 거버넌스 지식 플랫폼입니다.
 
-First, run the development server:
+## 주요 기능
+
+- 13개 핵심 메뉴 (이사회, 사외이사, 위원회, 법규, 감독사례, 판례, 국제기준 등)
+- 관리자 CRUD 콘솔 (`/admin`)
+- Supabase PostgreSQL + Full Text Search
+- AI Board Assistant (RAG + OpenAI)
+- 파일 업로드 (Supabase Storage)
+
+## 기술 스택
+
+- Next.js 16, TypeScript, Tailwind CSS
+- Supabase (Auth, PostgreSQL, Storage)
+- OpenAI API (선택)
+
+## 빠른 시작 (로컬)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local
+# .env.local에 Supabase 키 입력
+npm run verify:env
+npm run build
+npm run start -- --hostname 127.0.0.1 --port 3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Supabase SQL 적용 순서:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. `supabase/schema.sql`
+2. `supabase/rls.sql`
+3. `supabase/auth-profile-trigger.sql`
+4. `supabase/storage.sql`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+관리자 승격: `supabase/promote-admin.sql`
 
-## Learn More
+## 환경변수
 
-To learn more about Next.js, take a look at the following resources:
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-4o-mini
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 배포
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+상세 가이드: [docs/deployment-guide.md](docs/deployment-guide.md)
 
-## Deploy on Vercel
+요약:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. GitHub push
+2. Vercel Import
+3. 환경변수 설정
+4. Supabase Auth URL 설정
+5. `/api/health` 확인
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 문서
+
+- [서비스 기획서](docs/service-plan.md)
+- [IA / Sitemap](docs/ia-sitemap-userflow.md)
+- [Auth / RAG 가이드](docs/rag-and-auth-guide.md)
+- [배포 가이드](docs/deployment-guide.md)
+
+## 라이선스
+
+Private — All rights reserved.
