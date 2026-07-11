@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAdminDashboardStats } from "@/lib/admin-stats";
+import { getSiteUrl } from "@/lib/site-url";
 
 const quickLinks = [
   { href: "/admin/news", label: "뉴스 등록", publicHref: "/news" },
@@ -13,10 +14,12 @@ const quickLinks = [
   { href: "/admin/users", label: "사용자 관리", publicHref: null },
 ];
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bankboardhub.vercel.app";
+const supabaseAuthUrl =
+  "https://supabase.com/dashboard/project/jqihncwypxkxtmlipgtc/auth/url-configuration";
 
 export default async function AdminPage() {
   const stats = await getAdminDashboardStats();
+  const siteUrl = getSiteUrl();
 
   return (
     <div className="grid gap-6">
@@ -87,14 +90,26 @@ export default async function AdminPage() {
         <CardHeader>
           <CardTitle>운영 체크리스트</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-2 text-sm text-slate-700">
-          <p>1. `/admin/news` 등에서 콘텐츠 등록 후 공개 페이지 반영 확인</p>
-          <p>2. `/search`와 `/ai-assistant`에서 검색·질의 테스트</p>
-          <p>3. Vercel `NEXT_PUBLIC_SITE_URL` 및 Supabase Auth Redirect URL 확인</p>
-          <p>4. (선택) Vercel `OPENAI_API_KEY` 설정 → AI 생성 답변 활성화</p>
-          <p>5. (선택) `supabase/seed-sample.sql`로 추가 샘플 데이터 입력</p>
+        <CardContent className="grid gap-3 text-sm text-slate-700">
+          <div className="grid gap-1">
+            <p className="font-medium text-slate-900">완료됨</p>
+            <p>✅ 프로덕션 배포 · Health · OpenAI · sitemap</p>
+            <p>✅ 메뉴별 문서·웹사이트 업로드 · AI Assistant</p>
+          </div>
+          <div className="grid gap-1">
+            <p className="font-medium text-slate-900">남은 확인</p>
+            <p>
+              1.{" "}
+              <a href={supabaseAuthUrl} target="_blank" rel="noreferrer" className="underline">
+                Supabase Auth URL
+              </a>
+              에 Site URL · Redirect URL(`/auth/callback`) 등록
+            </p>
+            <p>2. `/admin/news` 등에서 콘텐츠 등록 → 공개 페이지 반영 확인</p>
+            <p>3. `/search`, `/ai-assistant`에서 검색·질의 테스트</p>
+          </div>
           <p className="text-xs text-slate-500">
-            가이드: <code className="rounded bg-slate-100 px-1">docs/go-live-checklist.md</code>
+            검증: <code className="rounded bg-slate-100 px-1">npm run verify:production -- {siteUrl}</code>
           </p>
         </CardContent>
       </Card>

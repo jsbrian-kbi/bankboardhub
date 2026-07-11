@@ -52,13 +52,16 @@ OPENAI_API_KEY=
 OPENAI_MODEL=gpt-4o-mini
 ```
 
-## 프로덕션
+## 프로덕션 (Live)
 
 - **사이트**: https://bankboardhub.vercel.app
 - **관리자**: https://bankboardhub.vercel.app/admin
+- **AI Assistant**: https://bankboardhub.vercel.app/ai-assistant
 - **검증**: `npm run verify:production -- https://bankboardhub.vercel.app`
 
 Go-Live 체크리스트: [docs/go-live-checklist.md](docs/go-live-checklist.md)
+
+Supabase Auth URL 설정: [URL Configuration](https://supabase.com/dashboard/project/jqihncwypxkxtmlipgtc/auth/url-configuration)
 
 ## 배포
 
