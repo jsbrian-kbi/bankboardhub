@@ -11,6 +11,8 @@
     "restart": "node scripts/restart-server.mjs",
     "deploy:preflight": "node scripts/deploy-preflight.mjs",
     "verify:production": "node scripts/verify-production.mjs",
+    "verify:supabase-auth": "node scripts/verify-supabase-auth.mjs",
+    "promote:admin": "node scripts/promote-admin.mjs",
     "seed:sample": "node scripts/seed-sample.mjs",
     "verify:openai": "node scripts/verify-openai.mjs"
   },

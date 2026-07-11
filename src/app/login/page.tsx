@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,6 @@ const errorMessages: Record<string, string> = {
 };
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const urlError = searchParams.get("error");
   const signedOut = searchParams.get("signed_out");
@@ -52,6 +51,7 @@ function LoginForm() {
     setIsLoading(true);
     const response = await fetch("/api/auth/login", {
       method: "POST",
+      credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
@@ -74,9 +74,9 @@ function LoginForm() {
       return;
     }
 
-    setMessage("로그인 성공. 관리자 페이지로 이동합니다...");
-    router.refresh();
-    window.location.href = nextPath.startsWith("/") ? nextPath : "/admin";
+    const destination = nextPath.startsWith("/") ? nextPath : "/admin";
+    setMessage(`로그인 성공. ${destination} 로 이동합니다...`);
+    window.location.assign(destination);
   };
 
   const signUp = async () => {

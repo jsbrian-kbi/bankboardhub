@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 
 const adminMenus = [
+  { href: "/admin/content-agent", label: "AI 등록 도우미" },
   { href: "/admin/news", label: "뉴스 등록" },
   { href: "/admin/regulation", label: "법규 등록" },
   { href: "/admin/precedents", label: "판례 등록" },

@@ -22,7 +22,7 @@ const paths = [
 
 const protectedPaths = [
   { path: "/admin", name: "Admin (auth required)" },
-  { path: "/admin/news", name: "Admin News (auth required)" },
+  { path: "/admin/content-agent", name: "Admin Content Agent (auth required)" },
   { path: "/api/admin/content?domain=news", name: "Admin API (auth required)" },
 ];
 

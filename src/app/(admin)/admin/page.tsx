@@ -4,6 +4,7 @@ import { getAdminDashboardStats } from "@/lib/admin-stats";
 import { getSiteUrl } from "@/lib/site-url";
 
 const quickLinks = [
+  { href: "/admin/content-agent", label: "AI 등록 도우미", publicHref: null },
   { href: "/admin/news", label: "뉴스 등록", publicHref: "/news" },
   { href: "/admin/regulation", label: "법규 등록", publicHref: "/regulation" },
   { href: "/admin/precedents", label: "판례 등록", publicHref: "/precedents" },

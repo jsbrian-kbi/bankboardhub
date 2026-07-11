@@ -1,7 +1,15 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+
+async function getLoginRedirectPath(error: "auth_required" | "not_admin") {
+  const headerList = await headers();
+  const nextPath = headerList.get("x-pathname") || "/admin";
+  const params = new URLSearchParams({ error, next: nextPath });
+  return `/login?${params.toString()}`;
+}
 
 export async function getProfileRole(userId: string): Promise<string | null> {
   const admin = createAdminClient();
@@ -60,7 +68,7 @@ export async function requireAdminUser() {
   } = await supabase.auth.getUser();
 
   if (error || !user) {
-    redirect("/login?error=auth_required");
+    redirect(await getLoginRedirectPath("auth_required"));
   }
 
   if (user.email) {
@@ -69,7 +77,7 @@ export async function requireAdminUser() {
 
   const role = await getProfileRole(user.id);
   if (role !== "admin") {
-    redirect("/login?error=not_admin");
+    redirect(await getLoginRedirectPath("not_admin"));
   }
 
   return user;
