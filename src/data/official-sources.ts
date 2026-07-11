@@ -1,6 +1,6 @@
 import type { ContentDomain } from "@/lib/content-domains";
 
-export type OfficialSourceKind = "rss" | "law-api";
+export type OfficialSourceKind = "rss" | "law-api" | "html-list" | "fss-api";
 
 export interface OfficialSource {
   id: string;
@@ -10,6 +10,8 @@ export interface OfficialSource {
   region: "kr" | "intl";
   suggestedDomains: ContentDomain[];
   feedUrl?: string;
+  listUrl?: string;
+  requiresApiKey?: boolean;
 }
 
 export const OFFICIAL_SOURCES: OfficialSource[] = [
@@ -57,6 +59,51 @@ export const OFFICIAL_SOURCES: OfficialSource[] = [
     homepageUrl: "https://www.etnews.com/",
     region: "kr",
     suggestedDomains: ["news", "supervisory-case"],
+  },
+  {
+    id: "fss-press",
+    name: "금융감독원 보도자료",
+    kind: "html-list",
+    listUrl: "https://www.fss.or.kr/fss/bbs/B0000188/list.do?menuNo=200218",
+    homepageUrl: "https://www.fss.or.kr/",
+    region: "kr",
+    suggestedDomains: ["news", "supervisory-case", "regulation"],
+  },
+  {
+    id: "fsc-press",
+    name: "금융위원회 보도자료",
+    kind: "rss",
+    feedUrl: "https://www.fsc.go.kr/about/fsc_bbs_rss/?fid=0111",
+    homepageUrl: "https://www.fsc.go.kr/",
+    region: "kr",
+    suggestedDomains: ["news", "regulation"],
+  },
+  {
+    id: "fsc-briefing",
+    name: "금융위원회 보도설명",
+    kind: "rss",
+    feedUrl: "https://www.fsc.go.kr/about/fsc_bbs_rss/?fid=0112",
+    homepageUrl: "https://www.fsc.go.kr/",
+    region: "kr",
+    suggestedDomains: ["news", "regulation", "supervisory-case"],
+  },
+  {
+    id: "dart-disclosure",
+    name: "금융감독원 DART (최근공시)",
+    kind: "rss",
+    feedUrl: "https://dart.fss.or.kr/api/todayRSS.xml",
+    homepageUrl: "https://dart.fss.or.kr/",
+    region: "kr",
+    suggestedDomains: ["regulation", "news", "resources"],
+  },
+  {
+    id: "fss-open-api",
+    name: "금융감독원 보도자료 API",
+    kind: "fss-api",
+    homepageUrl: "https://www.fss.or.kr/",
+    region: "kr",
+    suggestedDomains: ["news", "supervisory-case", "regulation"],
+    requiresApiKey: true,
   },
   {
     id: "law-go-kr",

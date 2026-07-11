@@ -85,7 +85,11 @@ export function ContentAgentPanel() {
     setSearchErrors(result.feedErrors);
 
     if (result.results.length === 0) {
-      setStatus("검색 결과가 없습니다. 다른 키워드를 시도해주세요.");
+      if (result.feedErrors.length > 0) {
+        setStatus("검색 결과가 없습니다. 일부 출처 연결에 실패했을 수 있습니다. 아래 오류를 확인하세요.");
+      } else {
+        setStatus("검색 결과가 없습니다. 더 짧거나 다른 키워드(예: 금융, 검사, 은행)를 시도해주세요.");
+      }
       return;
     }
 
@@ -198,7 +202,7 @@ export function ContentAgentPanel() {
         </CardHeader>
         <CardContent className="grid gap-4">
           <p className="text-sm text-slate-600">
-            SEC·연준·ECB RSS, 국가법령정보센터, 국내 금융 뉴스 RSS 등 화이트리스트 출처에서 무료로 검색합니다.
+            금융위원회·금융감독원, DART, SEC·연준·ECB RSS, 국가법령정보센터 등 공식 출처에서 무료로 검색합니다.
           </p>
 
           <label className="grid gap-1 text-sm text-slate-700">

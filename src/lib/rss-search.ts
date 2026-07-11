@@ -4,6 +4,14 @@ import type { OfficialSearchFeedError, OfficialSearchResult } from "@/lib/conten
 const FETCH_TIMEOUT_MS = 10_000;
 const MAX_ITEMS_PER_SOURCE = 40;
 const DEFAULT_RESULT_LIMIT = 20;
+const BROWSER_USER_AGENT =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+const BROWSER_FETCH_HEADERS = {
+  "User-Agent": BROWSER_USER_AGENT,
+  Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+  "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+};
 
 export interface SearchOfficialSourcesInput {
   query: string;
@@ -89,15 +97,26 @@ function tokenizeQuery(query: string) {
     .filter((token) => token.length >= 2);
 }
 
+function getSearchableText(item: ParsedFeedItem) {
+  return `${item.title} ${item.summary}`.trim();
+}
+
 function matchesToken(haystack: string, token: string) {
   const normalizedHaystack = haystack.toLocaleLowerCase("ko-KR");
   const normalizedToken = token.toLocaleLowerCase("ko-KR");
   return normalizedHaystack.includes(normalizedToken);
 }
 
+function matchesAllQueryTokens(item: ParsedFeedItem, tokens: string[]) {
+  if (tokens.length === 0) return false;
+  const searchable = getSearchableText(item);
+  return tokens.every((token) => matchesToken(searchable, token));
+}
+
 function scoreItem(query: string, item: ParsedFeedItem) {
   const tokens = tokenizeQuery(query);
   if (tokens.length === 0) return 0;
+  if (!matchesAllQueryTokens(item, tokens)) return 0;
 
   const title = item.title;
   const summary = item.summary;
@@ -129,22 +148,67 @@ function buildResultId(sourceId: string, url: string) {
 }
 
 async function fetchXml(url: string) {
-  const response = await fetch(url, {
-    headers: {
-      "User-Agent": "BankBoardHubBot/1.0 (+https://bankboardhub.vercel.app)",
-      Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
-    },
-    redirect: "follow",
-    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: {
+        ...BROWSER_FETCH_HEADERS,
+        Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
+      },
+      redirect: "follow",
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+  } catch (error) {
+    throw new Error(
+      error instanceof Error ? `피드 연결에 실패했습니다. (${error.message})` : "피드 연결에 실패했습니다.",
+    );
+  }
 
   if (!response.ok) {
     throw new Error(`피드를 가져오지 못했습니다. (${response.status})`);
   }
 
   const text = await response.text();
-  if (!text.includes("<") || text.includes("<html")) {
+  if (!text || text.length < 50) {
+    throw new Error("피드 응답이 비어 있습니다.");
+  }
+
+  if (text.includes("<html") || text.includes("<!DOCTYPE html")) {
+    throw new Error("피드 대신 HTML 페이지가 반환되었습니다.");
+  }
+
+  if (/<Response>[\s\S]*?검증에 실패/i.test(text) || /<result>사용자 정보 검증에 실패/i.test(text)) {
+    throw new Error("API 인증/IP 등록이 필요합니다.");
+  }
+
+  if (!text.includes("<")) {
     throw new Error("유효한 RSS/XML 응답이 아닙니다.");
+  }
+
+  return text;
+}
+
+async function fetchHtml(url: string) {
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: BROWSER_FETCH_HEADERS,
+      redirect: "follow",
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+  } catch (error) {
+    throw new Error(
+      error instanceof Error ? `페이지 연결에 실패했습니다. (${error.message})` : "페이지 연결에 실패했습니다.",
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(`페이지를 가져오지 못했습니다. (${response.status})`);
+  }
+
+  const text = await response.text();
+  if (!text || text.length < 100) {
+    throw new Error("페이지 응답이 비어 있습니다.");
   }
 
   return text;
@@ -183,15 +247,196 @@ function formatLawDate(value: string | null) {
   return `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;
 }
 
+function parseFssPressListHtml(html: string, baseUrl: string): ParsedFeedItem[] {
+  const items: ParsedFeedItem[] = [];
+  const rowPattern =
+    /<td class="title"><a href="([^"]+)">([\s\S]*?)<\/a><\/td>[\s\S]*?<td>([^<]*)<\/td>\s*<td>\s*(\d{4}-\d{2}-\d{2})\s*<\/td>/gi;
+
+  for (const match of html.matchAll(rowPattern)) {
+    const href = decodeHtmlEntities(match[1]);
+    const title = decodeHtmlEntities(match[2]);
+    const department = decodeHtmlEntities(match[3]);
+    const publishedAt = match[4];
+    const url = href.startsWith("http") ? href : new URL(href, baseUrl).toString();
+
+    if (!title || !url) continue;
+    items.push({
+      title,
+      url,
+      summary: department ? `금융감독원 · ${department}` : "금융감독원 보도자료",
+      publishedAt,
+    });
+  }
+
+  return items;
+}
+
+function parseFssApiXml(xml: string): ParsedFeedItem[] {
+  const items: ParsedFeedItem[] = [];
+  const rowBlocks = xml.match(/<list>[\s\S]*?<\/list>/gi) ?? xml.match(/<row>[\s\S]*?<\/row>/gi) ?? [];
+
+  for (const block of rowBlocks) {
+    const title =
+      extractTagValue(block, "title") ||
+      extractTagValue(block, "bodoTitle") ||
+      extractTagValue(block, "subject");
+    const url =
+      extractTagValue(block, "url") ||
+      extractTagValue(block, "link") ||
+      extractTagValue(block, "bodoUrl");
+    const summary =
+      extractTagValue(block, "summary") ||
+      extractTagValue(block, "content") ||
+      extractTagValue(block, "bodoCn") ||
+      "금융감독원 보도자료";
+    const publishedAt =
+      extractTagValue(block, "regDate") ||
+      extractTagValue(block, "pubDate") ||
+      extractTagValue(block, "bodoDate") ||
+      null;
+
+    if (!title) continue;
+    items.push({
+      title,
+      url: url || "https://www.fss.or.kr/fss/bbs/B0000188/list.do?menuNo=200218",
+      summary,
+      publishedAt,
+    });
+  }
+
+  return items;
+}
+
+function parseFssApiJson(payload: unknown): ParsedFeedItem[] {
+  if (!payload || typeof payload !== "object") return [];
+
+  const root = payload as Record<string, unknown>;
+  const list =
+    (Array.isArray(root.list) && root.list) ||
+    (Array.isArray(root.result) && root.result) ||
+    (Array.isArray(root.data) && root.data) ||
+    (Array.isArray(root.items) && root.items) ||
+    [];
+
+  return list
+    .map((entry) => {
+      if (!entry || typeof entry !== "object") return null;
+      const row = entry as Record<string, unknown>;
+      const title = String(row.title ?? row.bodoTitle ?? row.subject ?? "").trim();
+      const url = String(row.url ?? row.link ?? row.bodoUrl ?? "").trim();
+      const summary = String(row.summary ?? row.content ?? row.bodoCn ?? "금융감독원 보도자료").trim();
+      const publishedAt = String(row.regDate ?? row.pubDate ?? row.bodoDate ?? "").trim() || null;
+
+      if (!title) return null;
+      return {
+        title,
+        url: url || "https://www.fss.or.kr/fss/bbs/B0000188/list.do?menuNo=200218",
+        summary,
+        publishedAt,
+      } satisfies ParsedFeedItem;
+    })
+    .filter((item): item is ParsedFeedItem => Boolean(item));
+}
+
+function getFssOpenApiKey() {
+  return process.env.FSS_OPEN_API_KEY?.trim() || process.env.FSS_AUTH_KEY?.trim() || "";
+}
+
+function getRecentDateRange(days = 90) {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - days);
+
+  const format = (date: Date) => date.toISOString().slice(0, 10);
+  return { startDate: format(start), endDate: format(end) };
+}
+
 async function searchRssSource(source: OfficialSource, query: string) {
   if (!source.feedUrl) {
     throw new Error("RSS 피드 URL이 없습니다.");
   }
 
   const xml = await fetchXml(source.feedUrl);
-  const items = parseRssItems(xml).slice(0, MAX_ITEMS_PER_SOURCE);
+  const items = parseRssItems(xml);
 
   return items
+    .map((item) => ({ item, score: scoreItem(query, item) }))
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, MAX_ITEMS_PER_SOURCE)
+    .map(({ item, score }) => ({ item, score }));
+}
+
+async function searchHtmlListSource(source: OfficialSource, query: string) {
+  if (!source.listUrl) {
+    throw new Error("목록 페이지 URL이 없습니다.");
+  }
+
+  const baseUrl = new URL(source.listUrl).origin;
+  const pages = [1, 2];
+  const items: ParsedFeedItem[] = [];
+
+  for (const pageIndex of pages) {
+    const pageUrl = new URL(source.listUrl);
+    pageUrl.searchParams.set("pageIndex", String(pageIndex));
+    const html = await fetchHtml(pageUrl.toString());
+    items.push(...parseFssPressListHtml(html, baseUrl));
+  }
+
+  if (items.length === 0) {
+    throw new Error("보도자료 목록을 읽지 못했습니다. 사이트 구조가 변경되었을 수 있습니다.");
+  }
+
+  const unique = new Map<string, ParsedFeedItem>();
+  for (const item of items) {
+    unique.set(normalizeUrl(item.url), item);
+  }
+
+  return Array.from(unique.values())
+    .slice(0, MAX_ITEMS_PER_SOURCE)
+    .map((item) => ({ item, score: scoreItem(query, item) }))
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map(({ item, score }) => ({ item, score }));
+}
+
+async function searchFssApiSource(source: OfficialSource, query: string) {
+  const authKey = getFssOpenApiKey();
+  if (!authKey) {
+    throw new Error("FSS_OPEN_API_KEY 환경 변수가 설정되지 않았습니다.");
+  }
+
+  const { startDate, endDate } = getRecentDateRange();
+  const url = new URL("https://www.fss.or.kr/fss/kr/openApi/api/bodoInfo.jsp");
+  url.searchParams.set("apiType", "json");
+  url.searchParams.set("startDate", startDate);
+  url.searchParams.set("endDate", endDate);
+  url.searchParams.set("authKey", authKey);
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      ...BROWSER_FETCH_HEADERS,
+      Accept: "application/json, application/xml, text/xml, */*",
+    },
+    redirect: "follow",
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+  });
+
+  if (!response.ok) {
+    throw new Error(`금융감독원 API 호출에 실패했습니다. (${response.status})`);
+  }
+
+  const contentType = response.headers.get("content-type") ?? "";
+  let items: ParsedFeedItem[] = [];
+
+  if (contentType.includes("json")) {
+    items = parseFssApiJson(await response.json());
+  } else {
+    items = parseFssApiXml(await response.text());
+  }
+
+  return items
+    .slice(0, MAX_ITEMS_PER_SOURCE)
     .map((item) => ({ item, score: scoreItem(query, item) }))
     .filter(({ score }) => score > 0)
     .sort((a, b) => b.score - a.score)
@@ -210,15 +455,22 @@ async function searchLawSource(source: OfficialSource, query: string) {
   const xml = await fetchXml(url.toString());
   const items = parseLawSearchXml(xml);
 
-  return items.map((item) => ({
-    item,
-    score: scoreItem(query, item) || 1,
-  }));
+  return items
+    .map((item) => ({ item, score: scoreItem(query, item) }))
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map(({ item, score }) => ({ item, score }));
 }
 
 async function searchSource(source: OfficialSource, query: string) {
+  if (source.kind === "fss-api") {
+    return searchFssApiSource(source, query);
+  }
   if (source.kind === "law-api") {
     return searchLawSource(source, query);
+  }
+  if (source.kind === "html-list") {
+    return searchHtmlListSource(source, query);
   }
   return searchRssSource(source, query);
 }
@@ -244,6 +496,10 @@ export async function searchOfficialSources(input: SearchOfficialSourcesInput) {
 
   await Promise.all(
     selectedSources.map(async (source) => {
+      if (source.requiresApiKey && !getFssOpenApiKey()) {
+        return;
+      }
+
       try {
         const results = await searchSource(source, query);
         for (const result of results) {
