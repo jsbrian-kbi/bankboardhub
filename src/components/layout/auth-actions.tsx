@@ -41,9 +41,16 @@ export function AuthActions({ isLoggedIn, isAdmin, email }: AuthActionsProps) {
     <div className="flex items-center gap-2">
       {email ? <span className="hidden text-xs text-slate-500 xl:inline">{email}</span> : null}
       {isAdmin ? (
-        <Link href="/admin">
-          <Button size="sm">관리자</Button>
-        </Link>
+        <>
+          <Link href="/admin/content-agent">
+            <Button variant="outline" size="sm">
+              AI 등록
+            </Button>
+          </Link>
+          <Link href="/admin">
+            <Button size="sm">관리자</Button>
+          </Link>
+        </>
       ) : null}
       <Button type="button" variant="ghost" size="sm" onClick={signOut} disabled={isLoading}>
         {isLoading ? "로그아웃 중..." : "로그아웃"}

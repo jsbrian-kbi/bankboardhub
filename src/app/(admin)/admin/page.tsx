@@ -1,19 +1,8 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ADMIN_QUICK_LINKS } from "@/data/admin-menus";
 import { getAdminDashboardStats } from "@/lib/admin-stats";
 import { getSiteUrl } from "@/lib/site-url";
-
-const quickLinks = [
-  { href: "/admin/content-agent", label: "AI 등록 도우미", publicHref: null },
-  { href: "/admin/news", label: "뉴스 등록", publicHref: "/news" },
-  { href: "/admin/regulation", label: "법규 등록", publicHref: "/regulation" },
-  { href: "/admin/precedents", label: "판례 등록", publicHref: "/precedents" },
-  { href: "/admin/supervisory-cases", label: "검사사례 등록", publicHref: "/supervisory-cases" },
-  { href: "/admin/documents", label: "자료실 등록", publicHref: "/resources" },
-  { href: "/admin/banks", label: "은행 정보", publicHref: "/bank-status" },
-  { href: "/admin/education", label: "교육 과정", publicHref: "/education" },
-  { href: "/admin/users", label: "사용자 관리", publicHref: null },
-];
 
 const supabaseAuthUrl =
   "https://supabase.com/dashboard/project/jqihncwypxkxtmlipgtc/auth/url-configuration";
@@ -64,7 +53,7 @@ export default async function AdminPage() {
           <CardTitle>빠른 작업</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3">
-          {quickLinks.map((link) => (
+          {ADMIN_QUICK_LINKS.map((link) => (
             <div key={link.href} className="flex flex-wrap items-center gap-2">
               <Link
                 href={link.href}
@@ -95,7 +84,7 @@ export default async function AdminPage() {
           <div className="grid gap-1">
             <p className="font-medium text-slate-900">완료됨</p>
             <p>✅ 프로덕션 배포 · Health · OpenAI · sitemap</p>
-            <p>✅ 메뉴별 문서·웹사이트 업로드 · AI Assistant</p>
+            <p>✅ 메뉴별 문서·웹사이트 업로드 · AI 등록 도우미 · AI Assistant</p>
           </div>
           <div className="grid gap-1">
             <p className="font-medium text-slate-900">남은 확인</p>
@@ -106,8 +95,9 @@ export default async function AdminPage() {
               </a>
               에 Site URL · Redirect URL(`/auth/callback`) 등록
             </p>
-            <p>2. `/admin/news` 등에서 콘텐츠 등록 → 공개 페이지 반영 확인</p>
-            <p>3. `/search`, `/ai-assistant`에서 검색·질의 테스트</p>
+            <p>2. `/admin/content-agent`에서 공식 출처 검색·AI 초안 등록 테스트</p>
+            <p>3. `/admin/news` 등에서 콘텐츠 등록 → 공개 페이지 반영 확인</p>
+            <p>4. `/search`, `/ai-assistant`에서 검색·질의 테스트</p>
           </div>
           <p className="text-xs text-slate-500">
             검증: <code className="rounded bg-slate-100 px-1">npm run verify:production -- {siteUrl}</code>
