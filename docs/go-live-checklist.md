@@ -13,11 +13,13 @@
 - [x] 샘플 데이터 (`npm run seed:sample`)
 - [x] 관리자 메뉴별 문서·웹사이트 업로드
 - [x] AI Assistant 검색/LLM 동작 확인
+- [x] sitemap/robots 프로덕션 도메인 반영 (`bankboardhub.vercel.app`)
 
 ## 배포 직후 확인 (권장)
 
 - [ ] Supabase Auth URL 설정 (`docs/supabase-production-auth.md`)
-- [ ] Vercel `NEXT_PUBLIC_SITE_URL=https://bankboardhub.vercel.app` + Redeploy
+  - Dashboard: https://supabase.com/dashboard/project/jqihncwypxkxtmlipgtc/auth/url-configuration
+- [ ] Vercel `NEXT_PUBLIC_SITE_URL=https://bankboardhub.vercel.app` + Redeploy (SEO 권장)
 - [ ] 프로덕션 `/login` → `/admin` 로그인 테스트
 - [ ] `/admin/news` 콘텐츠 등록 → `/news` 반영 확인
 - [ ] `/admin/documents` 파일 업로드 → `/resources` 링크 확인
@@ -61,4 +63,4 @@ npm run verify:openai
 | /admin 403 | `promote-admin.sql` 재실행 |
 | 검색 빈 결과 | 관리자에서 콘텐츠 등록 또는 `seed-sample.sql` |
 | 빌드 실패 | Vercel 환경변수 3키 재확인 후 Redeploy |
-| sitemap 잘못된 도메인 | `NEXT_PUBLIC_SITE_URL` 설정 후 Redeploy |
+| sitemap 잘못된 도메인 | `NEXT_PUBLIC_SITE_URL` 설정 후 Redeploy (또는 최신 배포 확인) |
