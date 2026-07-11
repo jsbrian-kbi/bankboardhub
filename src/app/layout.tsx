@@ -3,6 +3,7 @@ import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { getSiteUrl } from "@/lib/site-url";
 
 const noto = Noto_Sans_KR({
   subsets: ["latin"],
@@ -10,7 +11,7 @@ const noto = Noto_Sans_KR({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(getSiteUrl()),
   title: {
     default: "Bank Board Governance Hub",
     template: "%s | Bank Board Governance Hub",

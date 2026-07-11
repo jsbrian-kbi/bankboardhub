@@ -33,6 +33,18 @@ for (const item of paths) {
       console.log(`   supabase: ${payload.supabase}, openai: ${payload.openai}`);
       if (payload.supabase !== "configured") failed = true;
     }
+
+    if (item.path === "/sitemap.xml" && ok) {
+      const xml = await response.text();
+      const hostname = new URL(baseUrl).hostname;
+      if (xml.includes(hostname)) {
+        console.log(`   sitemap domain: ${hostname}`);
+      } else {
+        console.log(`   ⚠️  sitemap이 ${hostname}이 아닌 URL을 사용 중입니다.`);
+        console.log("   Vercel NEXT_PUBLIC_SITE_URL 설정 후 Redeploy 필요");
+        failed = true;
+      }
+    }
   } catch (error) {
     console.log(`❌ ${item.name} (${item.path}) → ${error instanceof Error ? error.message : "error"}`);
     failed = true;
