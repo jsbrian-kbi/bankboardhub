@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next";
 import { committeeMenus, topMenus } from "@/data/navigation";
 import { getSiteUrl } from "@/lib/site-url";
 
+export const dynamic = "force-dynamic";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = getSiteUrl();
   const paths = [
