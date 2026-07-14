@@ -1,16 +1,25 @@
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase-admin";
 import { requireAdminApi } from "@/lib/admin-auth";
-import { isContentDomain } from "@/lib/content-domains";
+import {
+  ACCEPTED_EXTENSIONS,
+  buildStorageObjectPath,
+  isAcceptedUploadExtension,
+  MAX_UPLOAD_BYTES,
+  parseUploadDomain,
+} from "@/lib/admin-upload";
+import { createAdminClient } from "@/lib/supabase-admin";
 
-const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+/**
+ * 호환용: 작은 파일은 서버 경유로도 업로드 가능.
+ * 권장 경로는 /api/admin/upload/sign → Storage 직접 업로드 → /complete.
+ */
 export async function POST(request: Request) {
   const auth = await requireAdminApi();
   if (auth.response) return auth.response;
 
   const formData = await request.formData();
   const file = formData.get("file");
-  const domain = String(formData.get("domain") ?? "resources").trim();
+  const domain = parseUploadDomain(formData.get("domain") ?? "resources");
   const title = String(formData.get("title") ?? "").trim();
   const sourceName = String(formData.get("source_name") ?? "").trim();
   const body = String(formData.get("body") ?? "").trim();
@@ -23,17 +32,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "문서명이 필요합니다." }, { status: 400 });
   }
 
-  if (file.size > MAX_UPLOAD_BYTES) {
-    return NextResponse.json({ error: "파일 크기는 20MB 이하여야 합니다." }, { status: 400 });
-  }
-
-  if (!isContentDomain(domain)) {
+  if (!domain) {
     return NextResponse.json({ error: "지원하지 않는 콘텐츠 도메인입니다." }, { status: 400 });
   }
 
+  if (!isAcceptedUploadExtension(file.name)) {
+    return NextResponse.json(
+      { error: `지원 확장자: ${ACCEPTED_EXTENSIONS.join(", ")}` },
+      { status: 400 },
+    );
+  }
+
+  if (file.size > MAX_UPLOAD_BYTES) {
+    return NextResponse.json(
+      { error: `파일 크기는 ${Math.round(MAX_UPLOAD_BYTES / (1024 * 1024))}MB 이하여야 합니다.` },
+      { status: 400 },
+    );
+  }
+
   const supabase = createAdminClient();
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const path = `${domain}/${Date.now()}-${safeName}`;
+  const path = buildStorageObjectPath(domain, file.name);
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error: uploadError } = await supabase.storage.from("resources").upload(path, buffer, {
@@ -62,6 +80,7 @@ export async function POST(request: Request) {
   });
 
   if (insertError) {
+    await supabase.storage.from("resources").remove([path]);
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
