@@ -30,12 +30,14 @@ export default async function Home() {
           </div>
           <div className="grid gap-4 md:grid-cols-3">
             {latestNews.map((item) => (
-              <Card key={item.id}>
-                <CardHeader>
-                  <CardTitle className="text-base">{item.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="line-clamp-3 text-sm text-slate-600">{item.body}</CardContent>
-              </Card>
+              <Link key={item.id} href={`/news/${item.id}`} className="group block h-full">
+                <Card className="h-full transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
+                  <CardHeader>
+                    <CardTitle className="text-base group-hover:underline">{item.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="line-clamp-3 text-sm text-slate-600">{item.body}</CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         </section>

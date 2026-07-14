@@ -49,6 +49,30 @@ export async function getDocumentsByDomain(domain: string, limit = 50): Promise<
   return data ?? [];
 }
 
+export async function getPublicDocumentById(id: number, domain?: string): Promise<PublicDocument | null> {
+  if (!Number.isFinite(id) || id <= 0) return null;
+
+  const supabase = createAdminClient();
+  let query = supabase
+    .from("documents")
+    .select("id, domain, title, body, source_name, source_url, published_at, created_at")
+    .eq("id", id)
+    .eq("is_public", true);
+
+  if (domain) {
+    query = query.eq("domain", domain);
+  }
+
+  const { data, error } = await query.maybeSingle();
+
+  if (error) {
+    console.error(`getPublicDocumentById(${id}):`, error.message);
+    return null;
+  }
+
+  return data;
+}
+
 export async function getBanks(): Promise<PublicBank[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase

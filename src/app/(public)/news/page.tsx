@@ -7,7 +7,11 @@ export default async function NewsPage() {
 
   return (
     <PageShell title="뉴스센터" description="국내외 감독·정책·거버넌스 뉴스를 주제별로 큐레이션합니다.">
-      <DocumentFeed items={news} emptyMessage="등록된 뉴스가 없습니다. /admin/news에서 뉴스를 등록해주세요." />
+      <DocumentFeed
+        items={news}
+        detailBasePath="/news"
+        emptyMessage="등록된 뉴스가 없습니다. /admin/news에서 뉴스를 등록해주세요."
+      />
     </PageShell>
   );
 }
