@@ -5,6 +5,7 @@ interface RetrievalChunk {
   title: string;
   domain: string;
   snippet: string;
+  source_kind?: string;
 }
 
 export async function generateGovernanceAnswer(question: string, chunks: RetrievalChunk[]) {
@@ -17,7 +18,10 @@ export async function generateGovernanceAnswer(question: string, chunks: Retriev
   }
 
   const context = chunks
-    .map((chunk, index) => `[${index + 1}] (${chunk.domain}) ${chunk.title}\n${chunk.snippet}`)
+    .map((chunk, index) => {
+      const kind = chunk.source_kind === "dynamic" ? "동적(뉴스·동향)" : "정적(법규·판례·기준)";
+      return `[${index + 1}] (${chunk.domain}/${kind}) ${chunk.title}\n${chunk.snippet}`;
+    })
     .join("\n\n");
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -34,7 +38,7 @@ export async function generateGovernanceAnswer(question: string, chunks: Retriev
         {
           role: "system",
           content:
-            "당신은 한국 은행·금융지주 이사회 및 사외이사 거버넌스 전문가입니다. 제공된 컨텍스트에 근거해서만 한국어로 답변하세요. 근거가 부족하면 추측하지 말고 부족함을 명시하세요. 답변 마지막에 '참고 문서: [번호]' 형식으로 출처를 표시하세요.",
+            "당신은 한국 은행·금융지주 이사회 및 사외이사 거버넌스 전문가입니다. 제공된 컨텍스트에 근거해서만 한국어로 답변하세요. 정적 자료(법규·판례·검사사례·기준)를 우선 근거로 삼고, 동적 자료(뉴스·동향)는 시점·사실 맥락으로 보완하세요. 근거가 부족하면 추측하지 말고 부족함을 명시하세요. 답변 마지막에 '참고 문서: [번호]' 형식으로 출처를 표시하세요.",
         },
         {
           role: "user",

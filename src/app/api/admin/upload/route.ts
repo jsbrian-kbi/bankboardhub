@@ -7,6 +7,7 @@ import {
   MAX_UPLOAD_BYTES,
   parseUploadDomain,
 } from "@/lib/admin-upload";
+import { tryIndexDocumentById } from "@/lib/rag-index";
 import { createAdminClient } from "@/lib/supabase-admin";
 
 /**
@@ -70,22 +71,29 @@ export async function POST(request: Request) {
 
   const { data: publicUrlData } = supabase.storage.from("resources").getPublicUrl(path);
 
-  const { error: insertError } = await supabase.from("documents").insert({
-    domain,
-    title,
-    body: body || `${file.name} 파일 업로드`,
-    source_name: sourceName || null,
-    source_url: publicUrlData.publicUrl,
-    is_public: true,
-  });
+  const { data: inserted, error: insertError } = await supabase
+    .from("documents")
+    .insert({
+      domain,
+      title,
+      body: body || `${file.name} 파일 업로드`,
+      source_name: sourceName || null,
+      source_url: publicUrlData.publicUrl,
+      is_public: true,
+    })
+    .select("id")
+    .single();
 
   if (insertError) {
     await supabase.storage.from("resources").remove([path]);
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
+  await tryIndexDocumentById(inserted?.id);
+
   return NextResponse.json({
     message: "파일이 업로드되어 등록되었습니다.",
     url: publicUrlData.publicUrl,
+    id: inserted?.id,
   });
 }

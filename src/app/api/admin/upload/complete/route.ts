@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminApi } from "@/lib/admin-auth";
 import { parseUploadDomain } from "@/lib/admin-upload";
+import { tryIndexDocumentById } from "@/lib/rag-index";
 import { createAdminClient } from "@/lib/supabase-admin";
 
 const requestSchema = z.object({
@@ -47,22 +48,29 @@ export async function POST(request: Request) {
     );
   }
 
-  const { error: insertError } = await supabase.from("documents").insert({
-    domain,
-    title: parsed.data.title,
-    body: parsed.data.body || `${parsed.data.title} 파일 업로드`,
-    source_name: parsed.data.source_name || null,
-    source_url: sourceUrl,
-    is_public: true,
-  });
+  const { data: inserted, error: insertError } = await supabase
+    .from("documents")
+    .insert({
+      domain,
+      title: parsed.data.title,
+      body: parsed.data.body || `${parsed.data.title} 파일 업로드`,
+      source_name: parsed.data.source_name || null,
+      source_url: sourceUrl,
+      is_public: true,
+    })
+    .select("id")
+    .single();
 
   if (insertError) {
     await supabase.storage.from("resources").remove([parsed.data.path]);
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
+  await tryIndexDocumentById(inserted?.id);
+
   return NextResponse.json({
     message: "파일이 업로드되어 등록되었습니다.",
     url: sourceUrl,
+    id: inserted?.id,
   });
 }

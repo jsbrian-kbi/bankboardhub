@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { requireAdminApi } from "@/lib/admin-auth";
 import { contentUpdateSchema, formatZodError } from "@/lib/admin-content-schema";
+import { deleteDocumentChunks, tryIndexDocumentById } from "@/lib/rag-index";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAdminApi();
@@ -34,6 +35,16 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  const shouldReindex =
+    payload.title !== undefined ||
+    payload.body !== undefined ||
+    payload.published_at !== undefined ||
+    payload.is_public !== undefined;
+
+  if (shouldReindex) {
+    await tryIndexDocumentById(Number(id));
+  }
+
   return NextResponse.json({ message: "콘텐츠가 수정되었습니다." });
 }
 
@@ -43,6 +54,14 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
 
   const { id } = await params;
   const supabase = createAdminClient();
+  const documentId = Number(id);
+
+  try {
+    await deleteDocumentChunks(documentId);
+  } catch {
+    // cascade will also remove; ignore if table missing
+  }
+
   const { error } = await supabase.from("documents").delete().eq("id", id);
 
   if (error) {

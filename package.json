@@ -15,7 +15,8 @@
     "promote:admin": "node scripts/promote-admin.mjs",
     "verify:content-search": "npx tsx scripts/verify-content-search-run.mts",
     "seed:sample": "node scripts/seed-sample.mjs",
-    "verify:openai": "node scripts/verify-openai.mjs"
+    "verify:openai": "node scripts/verify-openai.mjs",
+    "index:rag": "node scripts/index-rag.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { generateGovernanceAnswer } from "@/lib/llm";
 import { isOpenAiConfigured } from "@/lib/openai-config";
-import { searchDocumentsWithFallback } from "@/lib/search-documents";
+import { searchRagDocuments } from "@/lib/rag-search";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as { question?: string };
@@ -13,23 +13,20 @@ export async function POST(request: Request) {
   }
 
   const supabase = createAdminClient();
-  const { data, error } = await searchDocumentsWithFallback(supabase, question, 6);
+  const { data, error, mode: retrievalMode, intent } = await searchRagDocuments(supabase, question, 6);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const chunks = (data ?? []) as Array<{
-    id: number;
-    domain: string;
-    title: string;
-    snippet: string;
-  }>;
+  const chunks = data ?? [];
 
   const sources = chunks.map((chunk) => ({
     id: chunk.id,
     title: chunk.title,
     domain: chunk.domain,
+    source_kind: chunk.source_kind,
+    retrieval: chunk.retrieval,
   }));
 
   let answer: string;
@@ -72,5 +69,7 @@ export async function POST(request: Request) {
     mode,
     openaiConfigured,
     retrievalCount: chunks.length,
+    retrievalMode,
+    intent,
   });
 }

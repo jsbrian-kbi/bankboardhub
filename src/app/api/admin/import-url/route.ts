@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase-admin";
 import { fetchUrlMetadata } from "@/lib/url-metadata";
 import { isContentDomain } from "@/lib/content-domains";
 import { formatZodError, normalizeWebsiteUrl, websiteImportSchema } from "@/lib/admin-content-schema";
+import { tryIndexDocumentById } from "@/lib/rag-index";
 
 export async function GET(request: Request) {
   const auth = await requireAdminApi();
@@ -62,22 +63,28 @@ export async function POST(request: Request) {
     }
 
     const supabase = createAdminClient();
-    const { error } = await supabase.from("documents").insert({
-      domain,
-      title,
-      body,
-      source_name: sourceName,
-      source_url: metadata.canonicalUrl,
-      is_public: true,
-    });
+    const { data, error } = await supabase
+      .from("documents")
+      .insert({
+        domain,
+        title,
+        body,
+        source_name: sourceName,
+        source_url: metadata.canonicalUrl,
+        is_public: true,
+      })
+      .select("id")
+      .single();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    await tryIndexDocumentById(data?.id);
+
     return NextResponse.json({
       message: "웹사이트가 등록되었습니다.",
-      data: { title, source_url: metadata.canonicalUrl },
+      data: { id: data?.id, title, source_url: metadata.canonicalUrl },
     });
   } catch (error) {
     return NextResponse.json(

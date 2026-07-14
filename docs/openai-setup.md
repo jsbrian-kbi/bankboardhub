@@ -17,6 +17,7 @@ Vercel → Project → **Settings** → **Environment Variables**
 |-----|-------|-------------|
 | `OPENAI_API_KEY` | `sk-...` | Production, Preview, Development |
 | `OPENAI_MODEL` | `gpt-4o-mini` | Production, Preview, Development |
+| `OPENAI_EMBEDDING_MODEL` | `text-embedding-3-small` | Production, Preview, Development (벡터 RAG) |
 
 저장 후 **Deployments** → **Redeploy**
 
