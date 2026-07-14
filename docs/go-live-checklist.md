@@ -44,6 +44,9 @@ npm run verify:production -- https://bankboardhub.vercel.app
 
 # OpenAI 연동 확인
 npm run verify:openai
+
+# Auth URL 설정 안내 + callback 스모크
+npm run verify:auth-urls -- https://bankboardhub.vercel.app
 ```
 
 ## 운영 URL

@@ -16,6 +16,7 @@
     "verify:content-search": "npx tsx scripts/verify-content-search-run.mts",
     "seed:sample": "node scripts/seed-sample.mjs",
     "verify:openai": "node scripts/verify-openai.mjs",
+    "verify:auth-urls": "node scripts/verify-auth-urls.mjs",
     "index:rag": "node scripts/index-rag.mjs"
   },
   "dependencies": {

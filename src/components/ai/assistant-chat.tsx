@@ -9,6 +9,8 @@ interface Source {
   id: number;
   title: string;
   domain: string;
+  source_kind?: "static" | "dynamic";
+  retrieval?: "vector" | "fts";
 }
 
 interface AssistantChatProps {
@@ -28,6 +30,8 @@ export function AssistantChat({ initialOpenAiConfigured, initialModel }: Assista
   const [answer, setAnswer] = useState("");
   const [sources, setSources] = useState<Source[]>([]);
   const [mode, setMode] = useState<"llm" | "retrieval" | null>(null);
+  const [retrievalMode, setRetrievalMode] = useState<"vector" | "fts" | null>(null);
+  const [intent, setIntent] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [openAiConfigured, setOpenAiConfigured] = useState(initialOpenAiConfigured);
@@ -67,6 +71,8 @@ export function AssistantChat({ initialOpenAiConfigured, initialModel }: Assista
       answer?: string;
       sources?: Source[];
       mode?: "llm" | "retrieval";
+      retrievalMode?: "vector" | "fts";
+      intent?: string;
       openaiConfigured?: boolean;
     };
 
@@ -80,6 +86,8 @@ export function AssistantChat({ initialOpenAiConfigured, initialModel }: Assista
     setAnswer(result.answer ?? "");
     setSources(result.sources ?? []);
     setMode(result.mode ?? null);
+    setRetrievalMode(result.retrievalMode ?? null);
+    setIntent(result.intent ?? null);
     if (typeof result.openaiConfigured === "boolean") {
       setOpenAiConfigured(result.openaiConfigured);
     }
@@ -103,7 +111,11 @@ export function AssistantChat({ initialOpenAiConfigured, initialModel }: Assista
             `OPENAI_API_KEY`를 설정하면 근거 문서 기반 AI 답변을 사용할 수 있습니다. 설정 가이드:{" "}
             <code className="rounded bg-slate-100 px-1">docs/openai-setup.md</code>
           </CardContent>
-        ) : null}
+        ) : (
+          <CardContent className="text-sm text-slate-600">
+            법규·판례·기준(정적)과 뉴스·동향(동적)을 구분해 검색합니다. 벡터 색인이 있으면 의미 검색을 우선하고, 없으면 키워드 검색으로 전환합니다.
+          </CardContent>
+        )}
       </Card>
 
       <Card>
@@ -134,9 +146,19 @@ export function AssistantChat({ initialOpenAiConfigured, initialModel }: Assista
       {answer ? (
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <CardTitle>답변</CardTitle>
               {mode === "llm" ? <Badge>AI 생성</Badge> : <Badge>검색 기반</Badge>}
+              {retrievalMode === "vector" ? (
+                <Badge className="border border-emerald-200 bg-emerald-50 text-emerald-800">벡터 검색</Badge>
+              ) : retrievalMode === "fts" ? (
+                <Badge className="border border-amber-200 bg-amber-50 text-amber-900">키워드 검색</Badge>
+              ) : null}
+              {intent ? (
+                <Badge className="border border-slate-200 bg-slate-50 text-slate-700">
+                  {intent === "static" ? "정적 중심" : intent === "dynamic" ? "동적 중심" : "정적+동적"}
+                </Badge>
+              ) : null}
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -147,7 +169,9 @@ export function AssistantChat({ initialOpenAiConfigured, initialModel }: Assista
                 <ul className="grid gap-1 text-sm text-slate-600">
                   {sources.map((source) => (
                     <li key={source.id}>
-                      [{source.domain}] {source.title}
+                      [{source.domain}
+                      {source.source_kind === "dynamic" ? "/동적" : source.source_kind === "static" ? "/정적" : ""}
+                      ] {source.title}
                     </li>
                   ))}
                 </ul>

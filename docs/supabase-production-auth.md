@@ -32,6 +32,7 @@ http://127.0.0.1:3000/auth/callback
 
 ```bash
 npm run verify:production -- https://bankboardhub.vercel.app
+npm run verify:auth-urls -- https://bankboardhub.vercel.app
 ```
 
 ## 관리자 로그인 (프로덕션)

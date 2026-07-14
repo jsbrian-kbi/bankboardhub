@@ -61,13 +61,21 @@ async function matchBySourceKind(
   return (data ?? []) as MatchRow[];
 }
 
+function normalizeTitleKey(title: string) {
+  return title.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
 function dedupeByDocument(rows: MatchRow[], limit: number): RagSearchHit[] {
-  const seen = new Set<number>();
+  const seenIds = new Set<number>();
+  const seenTitles = new Set<string>();
   const hits: RagSearchHit[] = [];
 
   for (const row of rows) {
-    if (seen.has(row.document_id)) continue;
-    seen.add(row.document_id);
+    if (seenIds.has(row.document_id)) continue;
+    const titleKey = `${row.domain}::${normalizeTitleKey(row.title)}`;
+    if (seenTitles.has(titleKey)) continue;
+    seenIds.add(row.document_id);
+    seenTitles.add(titleKey);
     hits.push({
       id: row.document_id,
       domain: row.domain,
@@ -81,6 +89,19 @@ function dedupeByDocument(rows: MatchRow[], limit: number): RagSearchHit[] {
   }
 
   return hits;
+}
+
+function dedupeHits(hits: RagSearchHit[], limit: number): RagSearchHit[] {
+  const seenTitles = new Set<string>();
+  const out: RagSearchHit[] = [];
+  for (const hit of hits) {
+    const titleKey = `${hit.domain}::${normalizeTitleKey(hit.title)}`;
+    if (seenTitles.has(titleKey)) continue;
+    seenTitles.add(titleKey);
+    out.push(hit);
+    if (out.length >= limit) break;
+  }
+  return out;
 }
 
 export async function searchRagDocuments(
@@ -110,13 +131,16 @@ export async function searchRagDocuments(
         if (dynamicRows === null) {
           // schema missing for one call — use FTS
         } else {
-          const staticHits = dedupeByDocument(staticRows, quotas.static);
-          const dynamicHits = dedupeByDocument(dynamicRows, quotas.dynamic);
-          const merged = [...staticHits, ...dynamicHits].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+          const staticHits = dedupeByDocument(staticRows, quotas.static * 2);
+          const dynamicHits = dedupeByDocument(dynamicRows, quotas.dynamic * 2);
+          const merged = dedupeHits(
+            [...staticHits, ...dynamicHits].sort((a, b) => (b.score ?? 0) - (a.score ?? 0)),
+            matchCount,
+          );
 
           if (merged.length > 0) {
             return {
-              data: merged.slice(0, matchCount),
+              data: merged,
               error: null,
               mode: "vector",
               intent,
