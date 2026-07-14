@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { PublicDocument } from "@/lib/public-data";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { isStorageFileUrl } from "@/lib/content-domains";
 
 interface TimelineFeedProps {
   items: PublicDocument[];
@@ -33,6 +35,16 @@ export function TimelineFeed({
               {item.published_at ? item.published_at : new Date(item.created_at).toLocaleDateString("ko-KR")}
             </p>
             <p className="text-sm leading-relaxed text-slate-700">{item.body}</p>
+            {item.source_url ? (
+              <Link
+                href={item.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex text-sm font-medium text-slate-900 underline"
+              >
+                {isStorageFileUrl(item.source_url) ? "원문 파일 보기" : "원문 웹사이트 보기"}
+              </Link>
+            ) : null}
           </div>
         </div>
       ))}
