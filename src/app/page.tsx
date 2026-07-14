@@ -28,18 +28,18 @@ export default async function Home() {
               전체 보기
             </Link>
           </div>
-          <div className="grid gap-4 md:grid-cols-3">
+          <ul className="grid gap-2">
             {latestNews.map((item) => (
-              <Link key={item.id} href={`/news/${item.id}`} className="group block h-full">
-                <Card className="h-full transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
-                  <CardHeader>
-                    <CardTitle className="text-base group-hover:underline">{item.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="line-clamp-3 text-sm text-slate-600">{item.body}</CardContent>
-                </Card>
-              </Link>
+              <li key={item.id}>
+                <Link
+                  href={`/news/${item.id}`}
+                  className="text-base font-medium text-slate-900 underline-offset-2 hover:underline"
+                >
+                  {item.title}
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
       ) : null}
 
