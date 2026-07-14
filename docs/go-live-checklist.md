@@ -14,6 +14,7 @@
 - [x] 관리자 메뉴별 문서·웹사이트 업로드
 - [x] AI Assistant 검색/LLM 동작 확인
 - [x] sitemap/robots 프로덕션 도메인 반영 (`bankboardhub.vercel.app`)
+- [x] pgvector RAG (`rag-vector.sql` + `npm run index:rag`) — `retrievalMode: vector`
 
 ## 배포 직후 확인 (권장)
 
@@ -23,12 +24,14 @@
 - [ ] 프로덕션 `/login` → `/admin` 로그인 테스트
 - [ ] `/admin/news` 콘텐츠 등록 → `/news` 반영 확인
 - [ ] `/admin/documents` 파일 업로드 → `/resources` 링크 확인
+- [ ] `/api/rag/search?q=사외이사` 응답에 `"mode":"vector"` 확인
 
 ## 선택 항목
 
 - [ ] 커스텀 도메인 연결 → [커스텀 도메인 가이드](custom-domain.md)
 - [ ] Supabase `fix-rls-recursion.sql` 미적용 시 실행
 - [ ] Google Search Console 등록
+- [ ] Vercel에 `OPENAI_EMBEDDING_MODEL=text-embedding-3-small` 명시 (미설정 시 기본값 사용)
 
 ## 검증 명령
 
@@ -62,5 +65,6 @@ npm run verify:openai
 | 로그인 실패 | Supabase Redirect URL, 이메일 인증 확인 |
 | /admin 403 | `promote-admin.sql` 재실행 |
 | 검색 빈 결과 | 관리자에서 콘텐츠 등록 또는 `seed-sample.sql` |
+| AI가 FTS만 사용 | `rag-vector.sql` 적용 여부 + `npm run index:rag` + OpenAI 키 확인 |
 | 빌드 실패 | Vercel 환경변수 3키 재확인 후 Redeploy |
 | sitemap 잘못된 도메인 | `NEXT_PUBLIC_SITE_URL` 설정 후 Redeploy (또는 최신 배포 확인) |

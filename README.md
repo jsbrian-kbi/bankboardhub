@@ -6,8 +6,8 @@
 
 - 13개 핵심 메뉴 (이사회, 사외이사, 위원회, 법규, 감독사례, 판례, 국제기준 등)
 - 관리자 CRUD 콘솔 (`/admin`)
-- Supabase PostgreSQL + Full Text Search
-- AI Board Assistant (RAG + OpenAI)
+- Supabase PostgreSQL + Full Text Search + **pgvector RAG**
+- AI Board Assistant (정적/동적 소스 분리 RAG + OpenAI)
 - 파일 업로드 (Supabase Storage)
 
 ## 기술 스택
@@ -33,13 +33,15 @@ Supabase SQL 적용 순서:
 2. `supabase/rls.sql`
 3. `supabase/auth-profile-trigger.sql`
 4. `supabase/storage.sql`
+5. `supabase/rag-vector.sql` (pgvector — Extensions에서 `vector` 활성 또는 SQL로 생성)
 
 관리자 승격: `supabase/promote-admin.sql`
 
-샘플 데이터:
+샘플 데이터 / 벡터 색인:
 
 ```bash
 npm run seed:sample
+npm run index:rag
 ```
 
 ## 환경변수
@@ -50,6 +52,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 OPENAI_API_KEY=
 OPENAI_MODEL=gpt-4o-mini
+OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 ```
 
 ## 프로덕션 (Live)
@@ -73,11 +76,12 @@ npm run deploy:preflight
 
 요약:
 
-1. Supabase SQL 적용 (schema → rls → auth-profile-trigger → storage → fix-rls-recursion)
+1. Supabase SQL 적용 (schema → rls → auth-profile-trigger → storage → rag-vector)
 2. GitHub push 완료: https://github.com/jsbrian-kbi/bankboardhub
 3. Vercel Import + 환경변수 설정 → Deploy ([vercel-quickstart.md](docs/vercel-quickstart.md))
-4. Supabase Auth Redirect URL에 `/auth/callback` 등록
-5. `/api/health` 및 `/admin` 동작 확인
+4. `npm run index:rag` 로 문서 임베딩 색인
+5. Supabase Auth Redirect URL에 `/auth/callback` 등록
+6. `/api/health`, `/api/rag/search`, `/admin` 동작 확인
 
 ## 문서
 

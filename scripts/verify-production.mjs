@@ -93,15 +93,37 @@ try {
 }
 
 try {
+  const ragResponse = await fetch(`${baseUrl}/api/rag/search?q=${encodeURIComponent("사외이사")}`);
+  if (ragResponse.ok) {
+    const payload = await ragResponse.json();
+    const mode = payload.mode ?? "unknown";
+    const count = Array.isArray(payload.chunks) ? payload.chunks.length : 0;
+    pass(`RAG Search API → mode: ${mode}, chunks: ${count}, intent: ${payload.intent ?? "-"}`);
+    if (mode !== "vector") {
+      warn("벡터 검색이 아닙니다. supabase/rag-vector.sql 적용 및 npm run index:rag 를 확인하세요.");
+    }
+  } else {
+    fail(`RAG Search API → ${ragResponse.status}`);
+  }
+} catch (error) {
+  fail(`RAG Search API → ${error instanceof Error ? error.message : "error"}`);
+}
+
+try {
   const aiResponse = await fetch(`${baseUrl}/api/ai-assistant`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question: "내부통제" }),
+    body: JSON.stringify({ question: "사외이사 독립성 관련 규정" }),
   });
   if (aiResponse.ok) {
     const payload = await aiResponse.json();
-    pass(`AI Assistant API → mode: ${payload.mode}, retrieval: ${payload.retrievalCount ?? 0}`);
+    pass(
+      `AI Assistant API → mode: ${payload.mode}, retrieval: ${payload.retrievalCount ?? 0}, retrievalMode: ${payload.retrievalMode ?? "n/a"}`,
+    );
     if (!payload.openaiConfigured) warn("OpenAI가 프로덕션에서 미설정입니다.");
+    if (payload.retrievalMode && payload.retrievalMode !== "vector") {
+      warn("AI Assistant가 FTS 폴백 중입니다. 벡터 색인 상태를 확인하세요.");
+    }
   } else {
     fail(`AI Assistant API → ${aiResponse.status}`);
   }

@@ -83,7 +83,7 @@ export default async function AdminPage() {
         <CardContent className="grid gap-3 text-sm text-slate-700">
           <div className="grid gap-1">
             <p className="font-medium text-slate-900">완료됨</p>
-            <p>✅ 프로덕션 배포 · Health · OpenAI · sitemap</p>
+            <p>✅ 프로덕션 배포 · Health · OpenAI · sitemap · Vector RAG</p>
             <p>✅ 메뉴별 문서·웹사이트 업로드 · AI 등록 도우미 · AI Assistant</p>
           </div>
           <div className="grid gap-1">
@@ -96,8 +96,8 @@ export default async function AdminPage() {
               에 Site URL · Redirect URL(`/auth/callback`) 등록
             </p>
             <p>2. `/admin/content-agent`에서 공식 출처 검색·AI 초안 등록 테스트</p>
-            <p>3. `/admin/news` 등에서 콘텐츠 등록 → 공개 페이지 반영 확인</p>
-            <p>4. `/search`, `/ai-assistant`에서 검색·질의 테스트</p>
+            <p>3. `/admin/news` 등에서 콘텐츠 등록 → 공개 페이지·벡터 자동 색인 확인</p>
+            <p>4. `/api/rag/search?q=사외이사` 가 `"mode":"vector"` 인지 확인</p>
           </div>
           <p className="text-xs text-slate-500">
             검증: <code className="rounded bg-slate-100 px-1">npm run verify:production -- {siteUrl}</code>
